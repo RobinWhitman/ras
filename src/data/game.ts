@@ -85,6 +85,16 @@ export const kingdom: Kingdom = {
   state: "Le Royaume s'éveille...",
 };
 
+export const kingdomBuildings = {
+  Force: "Arène d'entraînement",
+  Savoir: "Bibliothèque",
+  Discipline: "Tour de garde",
+  Santé: "Jardin des soins",
+  Leadership: "Salle du conseil",
+  Foi: "Chapelle",
+  Relations: "Place des alliés",
+};
+
 export const companion: Companion = {
   start: "Le Royaume attend ton premier pas.",
   success: "Bien. Le Royaume a senti ton action. Le Chaos recule.",

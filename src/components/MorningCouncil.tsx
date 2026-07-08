@@ -1,6 +1,13 @@
 "use client";
 
-import { bosses, chapters, kingdom, projects, rituals } from "@/data/game";
+import {
+  bosses,
+  chapters,
+  kingdom,
+  kingdomBuildings,
+  projects,
+  rituals,
+} from "@/data/game";
 import { useGame } from "@/hooks/useGame";
 
 export default function MorningCouncil() {
@@ -26,6 +33,8 @@ export default function MorningCouncil() {
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
   const levelProgress = Math.round((currentLevelXp / 50) * 100);
+
+  const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
 
   let dayState = "🌙 Repos";
   if (save.glory >= 5) dayState = "🛡 Solide";
@@ -83,8 +92,34 @@ export default function MorningCouncil() {
         </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">🏰 Où j'en suis ?</h2>
+          <h2 className="text-2xl font-bold mb-3">🏰 Royaume</h2>
           <p>{kingdom.state}</p>
+
+          <div className="mt-6">
+            <h3 className="font-semibold mb-3">Bâtiments débloqués</h3>
+
+            {unlockedBuildings.length === 0 ? (
+              <p className="text-zinc-400">
+                Aucun bâtiment actif. Le Royaume attend ta première action.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {unlockedBuildings.map((item) => (
+                  <li
+                    key={item.pillar}
+                    className="border border-zinc-800 rounded-lg p-3"
+                  >
+                    <p className="font-semibold">
+                      {kingdomBuildings[item.pillar]}
+                    </p>
+                    <p className="text-zinc-400">
+                      Débloqué par le Pilier {item.pillar}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
@@ -165,7 +200,9 @@ export default function MorningCouncil() {
           <h2 className="text-2xl font-bold mb-3">📖 Journal</h2>
 
           {save.completedMissions.length === 0 ? (
-            <p className="text-zinc-400">Aucune mission accomplie aujourd'hui.</p>
+            <p className="text-zinc-400">
+              Aucune mission accomplie aujourd'hui.
+            </p>
           ) : (
             <ul className="space-y-3">
               {save.completedMissions.map((mission) => (
