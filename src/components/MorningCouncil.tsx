@@ -10,6 +10,8 @@ import {
 } from "@/data/game";
 import { useGame } from "@/hooks/useGame";
 import Card from "@/components/Card";
+import ProgressBar from "@/components/ProgressBar";
+import DebugActions from "@/components/DebugActions";
 
 export default function MorningCouncil() {
   const {
@@ -32,12 +34,9 @@ export default function MorningCouncil() {
     ? rituals.find((ritual) => ritual.id === currentMission.ritualId)
     : rituals[0];
 
-  const bossLifePercent = Math.round((save.bossHp / activeBoss.maxHp) * 100);
   const bossDefeated = save.bossHp <= 0;
-
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
-  const levelProgress = Math.round((currentLevelXp / 50) * 100);
 
   const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
 
@@ -57,14 +56,7 @@ export default function MorningCouncil() {
 
         <Card title="🧍 Héros">
           <p className="text-lg font-semibold">Robin — Niveau {heroLevel}</p>
-
-          <div className="w-full h-4 bg-zinc-800 rounded-full mt-4 overflow-hidden">
-            <div
-              className="h-full bg-yellow-500 transition-all duration-300"
-              style={{ width: `${levelProgress}%` }}
-            />
-          </div>
-
+          <ProgressBar value={currentLevelXp} max={50} color="yellow" />
           <p className="mt-3">
             {currentLevelXp} / 50 XP vers le prochain niveau
           </p>
@@ -79,12 +71,7 @@ export default function MorningCouncil() {
                   <span>{item.score}</span>
                 </div>
 
-                <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-yellow-500 transition-all duration-300"
-                    style={{ width: `${Math.min(item.score * 5, 100)}%` }}
-                  />
-                </div>
+                <ProgressBar value={Math.min(item.score * 5, 100)} max={100} />
               </div>
             ))}
           </div>
@@ -134,13 +121,7 @@ export default function MorningCouncil() {
 
         <Card title="👹 Boss actuel">
           <p className="text-lg font-semibold">{activeBoss.name}</p>
-
-          <div className="w-full h-4 bg-zinc-800 rounded-full mt-4 overflow-hidden">
-            <div
-              className="h-full bg-red-600 transition-all duration-300"
-              style={{ width: `${bossLifePercent}%` }}
-            />
-          </div>
+          <ProgressBar value={save.bossHp} max={activeBoss.maxHp} color="red" />
 
           <p className="mt-3">
             {save.bossHp} / {activeBoss.maxHp} PV
@@ -182,13 +163,6 @@ export default function MorningCouncil() {
           ) : (
             <p className="mb-6">Toutes les missions sont accomplies.</p>
           )}
-
-          <button
-            onClick={resetGame}
-            className="ml-4 bg-red-600 text-white font-bold px-6 py-3 rounded-xl"
-          >
-            Reset
-          </button>
         </Card>
 
         <Card title="🧙 Compagnon">
@@ -221,6 +195,8 @@ export default function MorningCouncil() {
           <p>XP total : {save.xp}</p>
           <p>Glory : {save.glory}</p>
         </footer>
+
+        <DebugActions onReset={resetGame} />
       </div>
     </main>
   );
