@@ -7,18 +7,43 @@ export type Pillar =
   | "Foi"
   | "Relations";
 
+export interface Chapter {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface Boss {
+  id: string;
+  chapterId: string;
+  name: string;
+  maxHp: number;
+}
+
+export interface Project {
+  id: string;
+  chapterId: string;
+  bossId: string;
+  title: string;
+}
+
+export interface Ritual {
+  id: string;
+  title: string;
+  time: "Aube" | "Jour" | "Crépuscule";
+}
+
 export interface Mission {
   id: string;
+  chapterId: string;
+  bossId: string;
+  projectId: string;
+  ritualId: string;
   title: string;
   pillar: Pillar;
   xp: number;
   glory: number;
   damage: number;
-}
-
-export interface Boss {
-  name: string;
-  maxHp: number;
 }
 
 export interface Kingdom {

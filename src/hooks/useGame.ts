@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { boss, companion, missions } from "@/data/game";
+import { bosses, companion, missions } from "@/data/game";
 import type { SaveData } from "@/types/game";
 
-const SAVE_KEY = "ras-save-v3";
+const SAVE_KEY = "ras-save-v4";
+
+const activeBoss = bosses[0];
 
 const defaultSave: SaveData = {
   missionIndex: 0,
   xp: 0,
   glory: 0,
-  bossHp: boss.maxHp,
+  bossHp: activeBoss.maxHp,
 };
 
 export function useGame() {

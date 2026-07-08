@@ -1,13 +1,22 @@
 "use client";
 
-import { boss, kingdom } from "@/data/game";
+import { bosses, chapters, kingdom, projects, rituals } from "@/data/game";
 import { useGame } from "@/hooks/useGame";
 
 export default function MorningCouncil() {
   const { save, currentMission, message, accomplirMission, resetGame } =
     useGame();
 
-  const bossLifePercent = Math.round((save.bossHp / boss.maxHp) * 100);
+  const activeChapter = chapters[0];
+  const activeBoss = bosses[0];
+  const activeProject = currentMission
+    ? projects.find((project) => project.id === currentMission.projectId)
+    : projects[0];
+  const activeRitual = currentMission
+    ? rituals.find((ritual) => ritual.id === currentMission.ritualId)
+    : rituals[0];
+
+  const bossLifePercent = Math.round((save.bossHp / activeBoss.maxHp) * 100);
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
   const levelProgress = Math.round((currentLevelXp / 50) * 100);
@@ -49,8 +58,26 @@ export default function MorningCouncil() {
         </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">⚔ Boss actuel</h2>
-          <p className="text-lg font-semibold">{boss.name}</p>
+          <h2 className="text-2xl font-bold mb-3">
+            ⚔ Pourquoi cette journée compte ?
+          </h2>
+
+          <p>
+            Chapitre : <strong>{activeChapter.title}</strong>
+          </p>
+
+          <p>
+            Projet : <strong>{activeProject?.title}</strong>
+          </p>
+
+          <p>
+            Rituel : <strong>{activeRitual?.title}</strong>
+          </p>
+        </section>
+
+        <section className="border border-zinc-700 rounded-xl p-6">
+          <h2 className="text-2xl font-bold mb-3">👹 Boss actuel</h2>
+          <p className="text-lg font-semibold">{activeBoss.name}</p>
 
           <div className="w-full h-4 bg-zinc-800 rounded-full mt-4 overflow-hidden">
             <div
@@ -60,7 +87,7 @@ export default function MorningCouncil() {
           </div>
 
           <p className="mt-3">
-            {save.bossHp} / {boss.maxHp} PV
+            {save.bossHp} / {activeBoss.maxHp} PV
           </p>
         </section>
 
