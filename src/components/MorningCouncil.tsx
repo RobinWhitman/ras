@@ -131,6 +131,28 @@ export default function MorningCouncil() {
           <p>{message}</p>
         </section>
 
+        <section className="border border-zinc-700 rounded-xl p-6">
+          <h2 className="text-2xl font-bold mb-3">📖 Journal</h2>
+
+          {save.completedMissions.length === 0 ? (
+            <p className="text-zinc-400">Aucune mission accomplie aujourd'hui.</p>
+          ) : (
+            <ul className="space-y-3">
+              {save.completedMissions.map((mission) => (
+                <li
+                  key={mission.id}
+                  className="border border-zinc-800 rounded-lg p-4"
+                >
+                  <p className="font-semibold">{mission.title}</p>
+                  <p className="text-zinc-400">
+                    {mission.pillar} · +{mission.xp} XP · +{mission.glory} Glory
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         <footer className="flex gap-6 text-xl font-bold">
           <p>XP total : {save.xp}</p>
           <p>Glory : {save.glory}</p>

@@ -46,6 +46,14 @@ export interface Mission {
   damage: number;
 }
 
+export interface CompletedMission {
+  id: string;
+  title: string;
+  pillar: Pillar;
+  xp: number;
+  glory: number;
+}
+
 export interface Kingdom {
   state: string;
 }
@@ -60,4 +68,5 @@ export interface SaveData {
   xp: number;
   glory: number;
   bossHp: number;
+  completedMissions: CompletedMission[];
 }

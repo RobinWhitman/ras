@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { bosses, companion, missions } from "@/data/game";
-import type { SaveData } from "@/types/game";
+import type { CompletedMission, SaveData } from "@/types/game";
 
-const SAVE_KEY = "ras-save-v4";
+const SAVE_KEY = "ras-save-v5";
 
 const activeBoss = bosses[0];
 
@@ -13,6 +13,7 @@ const defaultSave: SaveData = {
   xp: 0,
   glory: 0,
   bossHp: activeBoss.maxHp,
+  completedMissions: [],
 };
 
 export function useGame() {
@@ -34,11 +35,20 @@ export function useGame() {
   function accomplirMission() {
     if (!currentMission) return;
 
+    const completedMission: CompletedMission = {
+      id: currentMission.id,
+      title: currentMission.title,
+      pillar: currentMission.pillar,
+      xp: currentMission.xp,
+      glory: currentMission.glory,
+    };
+
     updateSave({
       missionIndex: save.missionIndex + 1,
       xp: save.xp + currentMission.xp,
       glory: save.glory + currentMission.glory,
       bossHp: Math.max(save.bossHp - currentMission.damage, 0),
+      completedMissions: [...save.completedMissions, completedMission],
     });
 
     setMessage(companion.success);
