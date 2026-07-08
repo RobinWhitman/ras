@@ -8,11 +8,28 @@ export default function MorningCouncil() {
     useGame();
 
   const bossLifePercent = Math.round((save.bossHp / boss.maxHp) * 100);
+  const heroLevel = Math.floor(save.xp / 50) + 1;
+  const currentLevelXp = save.xp % 50;
+  const levelProgress = Math.round((currentLevelXp / 50) * 100);
 
   return (
     <main className="min-h-screen bg-black text-white p-8">
       <div className="max-w-2xl mx-auto space-y-8">
         <h1 className="text-6xl font-bold">RAS</h1>
+
+        <section className="border border-zinc-700 rounded-xl p-6">
+          <h2 className="text-2xl font-bold mb-3">🧍 Héros</h2>
+          <p className="text-lg font-semibold">Robin — Niveau {heroLevel}</p>
+
+          <div className="w-full h-4 bg-zinc-800 rounded-full mt-4 overflow-hidden">
+            <div
+              className="h-full bg-yellow-500 transition-all duration-300"
+              style={{ width: `${levelProgress}%` }}
+            />
+          </div>
+
+          <p className="mt-3">{currentLevelXp} / 50 XP vers le prochain niveau</p>
+        </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
           <h2 className="text-2xl font-bold mb-3">🏰 Où j'en suis ?</h2>
@@ -76,7 +93,7 @@ export default function MorningCouncil() {
         </section>
 
         <footer className="flex gap-6 text-xl font-bold">
-          <p>XP : {save.xp}</p>
+          <p>XP total : {save.xp}</p>
           <p>Glory : {save.glory}</p>
         </footer>
       </div>
