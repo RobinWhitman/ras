@@ -22,14 +22,18 @@ export default function MorningCouncil() {
 
   const activeChapter = chapters[0];
   const activeBoss = bosses[0];
+
   const activeProject = currentMission
     ? projects.find((project) => project.id === currentMission.projectId)
     : projects[0];
+
   const activeRitual = currentMission
     ? rituals.find((ritual) => ritual.id === currentMission.ritualId)
     : rituals[0];
 
   const bossLifePercent = Math.round((save.bossHp / activeBoss.maxHp) * 100);
+  const bossDefeated = save.bossHp <= 0;
+
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
   const levelProgress = Math.round((currentLevelXp / 50) * 100);
@@ -81,9 +85,7 @@ export default function MorningCouncil() {
                 <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-500 transition-all duration-300"
-                    style={{
-                      width: `${Math.min(item.score * 5, 100)}%`,
-                    }}
+                    style={{ width: `${Math.min(item.score * 5, 100)}%` }}
                   />
                 </div>
               </div>
@@ -154,6 +156,17 @@ export default function MorningCouncil() {
           <p className="mt-3">
             {save.bossHp} / {activeBoss.maxHp} PV
           </p>
+
+          {bossDefeated && (
+            <div className="mt-4 border border-yellow-500 rounded-xl p-4">
+              <p className="text-yellow-400 font-bold">
+                🏆 Boss vaincu : {activeBoss.name}
+              </p>
+              <p className="text-zinc-300 mt-1">
+                Le Chaos Quotidien a été repoussé. Le Royaume gagne en stabilité.
+              </p>
+            </div>
+          )}
         </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
