@@ -12,10 +12,20 @@ export default function MorningCouncil() {
   const currentLevelXp = save.xp % 50;
   const levelProgress = Math.round((currentLevelXp / 50) * 100);
 
+  let dayState = "🌙 Repos";
+  if (save.glory >= 5) dayState = "🛡 Solide";
+  if (save.glory >= 15) dayState = "⭐ Héroïque";
+  if (save.glory >= 28) dayState = "🌟 Légendaire";
+
   return (
     <main className="min-h-screen bg-black text-white p-8">
       <div className="max-w-2xl mx-auto space-y-8">
         <h1 className="text-6xl font-bold">RAS</h1>
+
+        <section className="border border-zinc-700 rounded-xl p-6">
+          <h2 className="text-2xl font-bold mb-3">📜 Journée</h2>
+          <p className="text-xl font-semibold">{dayState}</p>
+        </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
           <h2 className="text-2xl font-bold mb-3">🧍 Héros</h2>
@@ -28,7 +38,9 @@ export default function MorningCouncil() {
             />
           </div>
 
-          <p className="mt-3">{currentLevelXp} / 50 XP vers le prochain niveau</p>
+          <p className="mt-3">
+            {currentLevelXp} / 50 XP vers le prochain niveau
+          </p>
         </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
