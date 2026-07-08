@@ -9,6 +9,7 @@ import {
   rituals,
 } from "@/data/game";
 import { useGame } from "@/hooks/useGame";
+import Card from "@/components/Card";
 
 export default function MorningCouncil() {
   const {
@@ -50,13 +51,11 @@ export default function MorningCouncil() {
       <div className="max-w-2xl mx-auto space-y-8">
         <h1 className="text-6xl font-bold">RAS</h1>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">📜 Journée</h2>
+        <Card title="📜 Journée">
           <p className="text-xl font-semibold">{dayState}</p>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">🧍 Héros</h2>
+        <Card title="🧍 Héros">
           <p className="text-lg font-semibold">Robin — Niveau {heroLevel}</p>
 
           <div className="w-full h-4 bg-zinc-800 rounded-full mt-4 overflow-hidden">
@@ -69,11 +68,9 @@ export default function MorningCouncil() {
           <p className="mt-3">
             {currentLevelXp} / 50 XP vers le prochain niveau
           </p>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">🏛 Piliers</h2>
-
+        <Card title="🏛 Piliers">
           <div className="space-y-3">
             {pillarScores.map((item) => (
               <div key={item.pillar}>
@@ -91,10 +88,9 @@ export default function MorningCouncil() {
               </div>
             ))}
           </div>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">🏰 Royaume</h2>
+        <Card title="🏰 Royaume">
           <p>{kingdom.state}</p>
 
           <div className="mt-6">
@@ -122,28 +118,21 @@ export default function MorningCouncil() {
               </ul>
             )}
           </div>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">
-            ⚔ Pourquoi cette journée compte ?
-          </h2>
-
+        <Card title="⚔ Pourquoi cette journée compte ?">
           <p>
             Chapitre : <strong>{activeChapter.title}</strong>
           </p>
-
           <p>
             Projet : <strong>{activeProject?.title}</strong>
           </p>
-
           <p>
             Rituel : <strong>{activeRitual?.title}</strong>
           </p>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">👹 Boss actuel</h2>
+        <Card title="👹 Boss actuel">
           <p className="text-lg font-semibold">{activeBoss.name}</p>
 
           <div className="w-full h-4 bg-zinc-800 rounded-full mt-4 overflow-hidden">
@@ -167,11 +156,9 @@ export default function MorningCouncil() {
               </p>
             </div>
           )}
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">🎯 Mission</h2>
-
+        <Card title="🎯 Mission">
           {currentMission ? (
             <>
               <h3 className="text-xl font-semibold mb-3">
@@ -202,16 +189,13 @@ export default function MorningCouncil() {
           >
             Reset
           </button>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">🧙 Compagnon</h2>
+        <Card title="🧙 Compagnon">
           <p>{message}</p>
-        </section>
+        </Card>
 
-        <section className="border border-zinc-700 rounded-xl p-6">
-          <h2 className="text-2xl font-bold mb-3">📖 Journal</h2>
-
+        <Card title="📖 Journal">
           {save.completedMissions.length === 0 ? (
             <p className="text-zinc-400">
               Aucune mission accomplie aujourd'hui.
@@ -231,7 +215,7 @@ export default function MorningCouncil() {
               ))}
             </ul>
           )}
-        </section>
+        </Card>
 
         <footer className="flex gap-6 text-xl font-bold">
           <p>XP total : {save.xp}</p>
