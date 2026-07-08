@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { bosses, companion, missions } from "@/data/game";
-import type { CompletedMission, SaveData } from "@/types/game";
+import type { CompletedMission, Pillar, SaveData } from "@/types/game";
 
-const SAVE_KEY = "ras-save-v5";
+const SAVE_KEY = "ras-save-v6";
 
 const activeBoss = bosses[0];
 
@@ -16,6 +16,16 @@ const defaultSave: SaveData = {
   completedMissions: [],
 };
 
+const pillars: Pillar[] = [
+  "Force",
+  "Savoir",
+  "Discipline",
+  "Santé",
+  "Leadership",
+  "Foi",
+  "Relations",
+];
+
 export function useGame() {
   const [save, setSave] = useState<SaveData>(defaultSave);
   const [message, setMessage] = useState(companion.start);
@@ -26,6 +36,14 @@ export function useGame() {
   }, []);
 
   const currentMission = missions[save.missionIndex];
+
+  const pillarScores = pillars.map((pillar) => {
+    const score = save.completedMissions
+      .filter((mission) => mission.pillar === pillar)
+      .reduce((total, mission) => total + mission.glory, 0);
+
+    return { pillar, score };
+  });
 
   function updateSave(nextSave: SaveData) {
     setSave(nextSave);
@@ -64,6 +82,7 @@ export function useGame() {
     save,
     currentMission,
     message,
+    pillarScores,
     accomplirMission,
     resetGame,
   };

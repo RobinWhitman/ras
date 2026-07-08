@@ -4,8 +4,14 @@ import { bosses, chapters, kingdom, projects, rituals } from "@/data/game";
 import { useGame } from "@/hooks/useGame";
 
 export default function MorningCouncil() {
-  const { save, currentMission, message, accomplirMission, resetGame } =
-    useGame();
+  const {
+    save,
+    currentMission,
+    message,
+    pillarScores,
+    accomplirMission,
+    resetGame,
+  } = useGame();
 
   const activeChapter = chapters[0];
   const activeBoss = bosses[0];
@@ -50,6 +56,30 @@ export default function MorningCouncil() {
           <p className="mt-3">
             {currentLevelXp} / 50 XP vers le prochain niveau
           </p>
+        </section>
+
+        <section className="border border-zinc-700 rounded-xl p-6">
+          <h2 className="text-2xl font-bold mb-3">🏛 Piliers</h2>
+
+          <div className="space-y-3">
+            {pillarScores.map((item) => (
+              <div key={item.pillar}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>{item.pillar}</span>
+                  <span>{item.score}</span>
+                </div>
+
+                <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-yellow-500 transition-all duration-300"
+                    style={{
+                      width: `${Math.min(item.score * 5, 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="border border-zinc-700 rounded-xl p-6">
