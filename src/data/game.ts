@@ -123,3 +123,13 @@ export const companion: Companion = {
   start: "Le Royaume attend ton premier pas.",
   success: "Bien. Le Royaume a senti ton action. Le Chaos recule.",
 };
+
+export const companionMissionMessages = {
+  Discipline: "La Discipline renforce les fondations du Royaume.",
+  Santé: "Le corps récupère. Le Royaume respire mieux.",
+  Foi: "La Foi éclaire la route avant l'action.",
+  Force: "La Force prépare le Héros au combat.",
+  Savoir: "Le Savoir agrandit les murs invisibles du Royaume.",
+  Leadership: "Le Leadership donne une direction au Royaume.",
+  Relations: "Les liens solides rendent le Royaume moins seul.",
+};
