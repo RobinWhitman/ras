@@ -82,6 +82,24 @@ export default function MorningCouncil() {
                   : "Le Rituel de l’Aube est accompli."}
               </p>
             </div>
+
+            {currentMission ? (
+              <button
+                onClick={accomplirMission}
+                className="w-full bg-yellow-500 text-black font-bold px-6 py-4 rounded-xl"
+              >
+                ✅ Accomplir la Mission
+              </button>
+            ) : (
+              <div className="border border-yellow-500 rounded-xl p-4">
+                <p className="text-yellow-400 font-bold">
+                  🌅 Rituel de l’Aube accompli
+                </p>
+                <p className="text-zinc-300">
+                  La journée peut commencer.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -193,13 +211,6 @@ export default function MorningCouncil() {
                 <p>Glory : +{currentMission.glory}</p>
                 <p>Dégâts Boss : -{currentMission.damage} PV</p>
               </div>
-
-              <button
-                onClick={accomplirMission}
-                className="bg-yellow-500 text-black font-bold px-6 py-3 rounded-xl"
-              >
-                Accomplir la Mission
-              </button>
             </>
           ) : (
             <div className="space-y-2">
