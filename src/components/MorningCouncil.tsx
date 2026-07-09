@@ -46,41 +46,52 @@ export default function MorningCouncil() {
   if (save.glory >= 28) dayState = "🌟 Légendaire";
 
   return (
-    <main className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-2xl mx-auto space-y-8">
-        <h1 className="text-6xl font-bold">RAS</h1>
+    <main className="min-h-screen bg-black text-white p-6">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <header className="flex items-center justify-between">
+          <h1 className="text-5xl font-bold">RAS</h1>
 
-        <section className="border border-yellow-500 rounded-xl p-6 bg-yellow-500/10">
-          <p className="text-sm uppercase tracking-widest text-yellow-400 mb-2">
-            Conseil du Matin
-          </p>
+          <div className="text-right">
+            <p className="text-xl font-bold">Robin — Niveau {heroLevel}</p>
+            <p className="text-zinc-400">
+              XP {save.xp} · Glory {save.glory}
+            </p>
+          </div>
+        </header>
 
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-xl font-bold">🏰 Où j’en suis ?</h2>
-              <p className="text-zinc-300">
-                {kingdom.state} · Journée : {dayState}
-              </p>
-            </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <section className="xl:col-span-2 border border-yellow-500 rounded-xl p-6 bg-yellow-500/10">
+            <p className="text-sm uppercase tracking-widest text-yellow-400 mb-4">
+              Conseil du Matin
+            </p>
 
-            <div>
-              <h2 className="text-xl font-bold">
-                ⚔ Pourquoi cette journée compte ?
-              </h2>
-              <p className="text-zinc-300">
-                {activeChapter.title} · {activeBoss.name}
-              </p>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div>
+                <h2 className="text-xl font-bold">🏰 Où j’en suis ?</h2>
+                <p className="text-zinc-300">
+                  {kingdom.state}
+                </p>
+                <p className="text-yellow-400 mt-2">{dayState}</p>
+              </div>
 
-            <div>
-              <h2 className="text-xl font-bold">
-                🎯 Quelle est la prochaine action ?
-              </h2>
-              <p className="text-zinc-300">
-                {currentMission
-                  ? currentMission.title
-                  : "Le Rituel de l’Aube est accompli."}
-              </p>
+              <div>
+                <h2 className="text-xl font-bold">
+                  ⚔ Pourquoi ça compte ?
+                </h2>
+                <p className="text-zinc-300">{activeChapter.title}</p>
+                <p className="text-zinc-400">{activeBoss.name}</p>
+              </div>
+
+              <div>
+                <h2 className="text-xl font-bold">
+                  🎯 Prochaine action
+                </h2>
+                <p className="text-zinc-300">
+                  {currentMission
+                    ? currentMission.title
+                    : "Rituel de l’Aube accompli."}
+                </p>
+              </div>
             </div>
 
             {currentMission ? (
@@ -95,163 +106,137 @@ export default function MorningCouncil() {
                 <p className="text-yellow-400 font-bold">
                   🌅 Rituel de l’Aube accompli
                 </p>
-                <p className="text-zinc-300">
-                  La journée peut commencer.
+                <p className="text-zinc-300">La journée peut commencer.</p>
+              </div>
+            )}
+          </section>
+
+          <Card title="🧍 Héros">
+            <p className="text-lg font-semibold">Robin — Niveau {heroLevel}</p>
+            <ProgressBar value={currentLevelXp} max={50} color="yellow" />
+            <p className="mt-3 text-zinc-400">
+              {currentLevelXp} / 50 XP vers le prochain niveau
+            </p>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <Card title="👹 Boss actuel">
+            <p className="text-lg font-semibold">{activeBoss.name}</p>
+            <ProgressBar value={save.bossHp} max={activeBoss.maxHp} color="red" />
+
+            <p className="mt-3">
+              {save.bossHp} / {activeBoss.maxHp} PV
+            </p>
+
+            {bossDefeated && (
+              <div className="mt-4 border border-yellow-500 rounded-xl p-4">
+                <p className="text-yellow-400 font-bold">
+                  🏆 Boss vaincu : {activeBoss.name}
                 </p>
               </div>
             )}
-          </div>
-        </section>
+          </Card>
 
-        {morningCompleted && (
-          <section className="border border-yellow-500 rounded-xl p-6 bg-yellow-500/10">
-            <h2 className="text-2xl font-bold mb-3">
-              🌅 Rituel de l’Aube accompli
-            </h2>
-            <p className="text-zinc-200">
-              Le matin est verrouillé. Le Royaume a reçu son premier souffle.
-            </p>
-          </section>
-        )}
+          <Card title="🎯 Mission">
+            {currentMission ? (
+              <>
+                <h3 className="text-xl font-semibold mb-3">
+                  {currentMission.title}
+                </h3>
 
-        <Card title="🧍 Héros">
-          <p className="text-lg font-semibold">Robin — Niveau {heroLevel}</p>
-          <ProgressBar value={currentLevelXp} max={50} color="yellow" />
-          <p className="mt-3">
-            {currentLevelXp} / 50 XP vers le prochain niveau
-          </p>
-        </Card>
-
-        <Card title="🏛 Piliers">
-          <div className="space-y-3">
-            {pillarScores.map((item) => (
-              <div key={item.pillar}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>{item.pillar}</span>
-                  <span>{item.score}</span>
+                <div className="space-y-1 text-zinc-400">
+                  <p>Pilier : {currentMission.pillar}</p>
+                  <p>XP : +{currentMission.xp}</p>
+                  <p>Glory : +{currentMission.glory}</p>
+                  <p>Dégâts Boss : -{currentMission.damage} PV</p>
                 </div>
-                <ProgressBar value={Math.min(item.score * 5, 100)} max={100} />
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="🏰 Royaume">
-          <p>{kingdom.state}</p>
-
-          <div className="mt-6">
-            <h3 className="font-semibold mb-3">Bâtiments débloqués</h3>
-
-            {unlockedBuildings.length === 0 ? (
+              </>
+            ) : (
               <p className="text-zinc-400">
-                Aucun bâtiment actif. Le Royaume attend ta première action.
+                Aucune mission restante. Le Rituel de l’Aube est terminé.
+              </p>
+            )}
+          </Card>
+
+          <Card title="🧙 Compagnon">
+            <p>{message}</p>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <Card title="🏛 Piliers">
+            <div className="space-y-3">
+              {pillarScores.map((item) => (
+                <div key={item.pillar}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{item.pillar}</span>
+                    <span>{item.score}</span>
+                  </div>
+                  <ProgressBar value={Math.min(item.score * 5, 100)} max={100} />
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="🏰 Royaume">
+            <p>{kingdom.state}</p>
+
+            <div className="mt-4">
+              {unlockedBuildings.length === 0 ? (
+                <p className="text-zinc-400">
+                  Aucun bâtiment actif.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {unlockedBuildings.map((item) => (
+                    <li key={item.pillar} className="border border-zinc-800 rounded-lg p-3">
+                      <p className="font-semibold">
+                        {kingdomBuildings[item.pillar]}
+                      </p>
+                      <p className="text-zinc-400">
+                        Pilier {item.pillar}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Card>
+
+          <Card title="📖 Journal">
+            {save.completedMissions.length === 0 ? (
+              <p className="text-zinc-400">
+                Aucune mission accomplie aujourd'hui.
               </p>
             ) : (
-              <ul className="space-y-2">
-                {unlockedBuildings.map((item) => (
-                  <li
-                    key={item.pillar}
-                    className="border border-zinc-800 rounded-lg p-3"
-                  >
-                    <p className="font-semibold">
-                      {kingdomBuildings[item.pillar]}
-                    </p>
+              <ul className="space-y-3 max-h-72 overflow-y-auto">
+                {save.completedMissions.map((mission) => (
+                  <li key={mission.id} className="border border-zinc-800 rounded-lg p-3">
+                    <p className="font-semibold">{mission.title}</p>
                     <p className="text-zinc-400">
-                      Débloqué par le Pilier {item.pillar}
+                      {mission.pillar} · +{mission.xp} XP · +{mission.glory} Glory
                     </p>
                   </li>
                 ))}
               </ul>
             )}
+          </Card>
+        </div>
+
+        <Card title="⚔ Détails du Chapitre">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <p>
+              Chapitre : <strong>{activeChapter.title}</strong>
+            </p>
+            <p>
+              Projet : <strong>{activeProject?.title}</strong>
+            </p>
+            <p>
+              Rituel : <strong>{activeRitual?.title}</strong>
+            </p>
           </div>
         </Card>
-
-        <Card title="⚔ Pourquoi cette journée compte ?">
-          <p>
-            Chapitre : <strong>{activeChapter.title}</strong>
-          </p>
-          <p>
-            Projet : <strong>{activeProject?.title}</strong>
-          </p>
-          <p>
-            Rituel : <strong>{activeRitual?.title}</strong>
-          </p>
-        </Card>
-
-        <Card title="👹 Boss actuel">
-          <p className="text-lg font-semibold">{activeBoss.name}</p>
-          <ProgressBar value={save.bossHp} max={activeBoss.maxHp} color="red" />
-
-          <p className="mt-3">
-            {save.bossHp} / {activeBoss.maxHp} PV
-          </p>
-
-          {bossDefeated && (
-            <div className="mt-4 border border-yellow-500 rounded-xl p-4">
-              <p className="text-yellow-400 font-bold">
-                🏆 Boss vaincu : {activeBoss.name}
-              </p>
-              <p className="text-zinc-300 mt-1">
-                Le Chaos Quotidien a été repoussé. Le Royaume gagne en stabilité.
-              </p>
-            </div>
-          )}
-        </Card>
-
-        <Card title="🎯 Mission">
-          {currentMission ? (
-            <>
-              <h3 className="text-xl font-semibold mb-3">
-                {currentMission.title}
-              </h3>
-
-              <div className="space-y-1 text-zinc-400 mb-6">
-                <p>Pilier : {currentMission.pillar}</p>
-                <p>XP : +{currentMission.xp}</p>
-                <p>Glory : +{currentMission.glory}</p>
-                <p>Dégâts Boss : -{currentMission.damage} PV</p>
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <p className="font-semibold">Aucune mission restante.</p>
-              <p className="text-zinc-400">
-                Le Rituel de l’Aube est terminé. La journée peut commencer.
-              </p>
-            </div>
-          )}
-        </Card>
-
-        <Card title="🧙 Compagnon">
-          <p>{message}</p>
-        </Card>
-
-        <Card title="📖 Journal">
-          {save.completedMissions.length === 0 ? (
-            <p className="text-zinc-400">
-              Aucune mission accomplie aujourd'hui.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {save.completedMissions.map((mission) => (
-                <li
-                  key={mission.id}
-                  className="border border-zinc-800 rounded-lg p-4"
-                >
-                  <p className="font-semibold">{mission.title}</p>
-                  <p className="text-zinc-400">
-                    {mission.pillar} · +{mission.xp} XP · +{mission.glory} Glory
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <footer className="flex gap-6 text-xl font-bold">
-          <p>XP total : {save.xp}</p>
-          <p>Glory : {save.glory}</p>
-        </footer>
 
         <DebugActions onReset={resetGame} />
       </div>
