@@ -39,6 +39,7 @@ export default function MorningCouncil() {
   const currentLevelXp = save.xp % 50;
 
   const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
+  const morningCompleted = !currentMission;
 
   let dayState = "🌙 Repos";
   if (save.glory >= 5) dayState = "🛡 Solide";
@@ -49,6 +50,17 @@ export default function MorningCouncil() {
     <main className="min-h-screen bg-black text-white p-8">
       <div className="max-w-2xl mx-auto space-y-8">
         <h1 className="text-6xl font-bold">RAS</h1>
+
+        {morningCompleted && (
+          <section className="border border-yellow-500 rounded-xl p-6 bg-yellow-500/10">
+            <h2 className="text-2xl font-bold mb-3">
+              🌅 Rituel de l’Aube accompli
+            </h2>
+            <p className="text-zinc-200">
+              Le matin est verrouillé. Le Royaume a reçu son premier souffle.
+            </p>
+          </section>
+        )}
 
         <Card title="📜 Journée">
           <p className="text-xl font-semibold">{dayState}</p>
@@ -70,7 +82,6 @@ export default function MorningCouncil() {
                   <span>{item.pillar}</span>
                   <span>{item.score}</span>
                 </div>
-
                 <ProgressBar value={Math.min(item.score * 5, 100)} max={100} />
               </div>
             ))}
@@ -161,7 +172,12 @@ export default function MorningCouncil() {
               </button>
             </>
           ) : (
-            <p className="mb-6">Toutes les missions sont accomplies.</p>
+            <div className="space-y-2">
+              <p className="font-semibold">Aucune mission restante.</p>
+              <p className="text-zinc-400">
+                Le Rituel de l’Aube est terminé. La journée peut commencer.
+              </p>
+            </div>
           )}
         </Card>
 
