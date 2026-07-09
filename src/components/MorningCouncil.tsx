@@ -37,7 +37,6 @@ export default function MorningCouncil() {
   const bossDefeated = save.bossHp <= 0;
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
-
   const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
   const morningCompleted = !currentMission;
 
@@ -51,6 +50,41 @@ export default function MorningCouncil() {
       <div className="max-w-2xl mx-auto space-y-8">
         <h1 className="text-6xl font-bold">RAS</h1>
 
+        <section className="border border-yellow-500 rounded-xl p-6 bg-yellow-500/10">
+          <p className="text-sm uppercase tracking-widest text-yellow-400 mb-2">
+            Conseil du Matin
+          </p>
+
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold">🏰 Où j’en suis ?</h2>
+              <p className="text-zinc-300">
+                {kingdom.state} · Journée : {dayState}
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold">
+                ⚔ Pourquoi cette journée compte ?
+              </h2>
+              <p className="text-zinc-300">
+                {activeChapter.title} · {activeBoss.name}
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold">
+                🎯 Quelle est la prochaine action ?
+              </h2>
+              <p className="text-zinc-300">
+                {currentMission
+                  ? currentMission.title
+                  : "Le Rituel de l’Aube est accompli."}
+              </p>
+            </div>
+          </div>
+        </section>
+
         {morningCompleted && (
           <section className="border border-yellow-500 rounded-xl p-6 bg-yellow-500/10">
             <h2 className="text-2xl font-bold mb-3">
@@ -61,10 +95,6 @@ export default function MorningCouncil() {
             </p>
           </section>
         )}
-
-        <Card title="📜 Journée">
-          <p className="text-xl font-semibold">{dayState}</p>
-        </Card>
 
         <Card title="🧍 Héros">
           <p className="text-lg font-semibold">Robin — Niveau {heroLevel}</p>
