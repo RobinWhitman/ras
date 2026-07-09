@@ -13,9 +13,9 @@ export default function ProgressBar({
   const colorClass = color === "red" ? "bg-red-600" : "bg-yellow-500";
 
   return (
-    <div className="w-full h-2.5 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+    <div className="w-full h-2 bg-zinc-800 rounded-full mt-2 overflow-hidden">
       <div
-        className={`h-full ${colorClass} transition-all duration-300`}
+        className={`h-full ${colorClass}`}
         style={{ width: `${percent}%` }}
       />
     </div>
