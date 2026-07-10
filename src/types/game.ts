@@ -77,4 +77,8 @@ export interface SaveData {
   completedMissions: CompletedMission[];
 
   pillarProgress: PillarProgress;
+
+  currentStreak: number;
+  bestStreak: number;
+  lastCompletedDate: string | null;
 }

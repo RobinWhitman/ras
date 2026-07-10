@@ -31,6 +31,13 @@ function getTodayDate() {
   return new Date().toLocaleDateString("fr-CA");
 }
 
+function getPreviousDate(date: string) {
+  const previousDate = new Date(`${date}T12:00:00`);
+  previousDate.setDate(previousDate.getDate() - 1);
+
+  return previousDate.toLocaleDateString("fr-CA");
+}
+
 function createEmptyPillarProgress(): PillarProgress {
   return {
     Force: 0,
@@ -56,6 +63,10 @@ function createDefaultSave(): SaveData {
     completedMissions: [],
 
     pillarProgress: createEmptyPillarProgress(),
+
+    currentStreak: 0,
+    bestStreak: 0,
+    lastCompletedDate: null,
   };
 }
 
@@ -69,30 +80,42 @@ export function useGame() {
     if (!stored) return;
 
     const parsedSave = JSON.parse(stored) as Partial<SaveData>;
+    const defaultSave = createDefaultSave();
 
     const storedSave: SaveData = {
-      ...createDefaultSave(),
+      ...defaultSave,
       ...parsedSave,
+
+      completedMissions: parsedSave.completedMissions ?? [],
+
       pillarProgress: {
         ...createEmptyPillarProgress(),
         ...(parsedSave.pillarProgress ?? {}),
       },
-      completedMissions: parsedSave.completedMissions ?? [],
+
+      currentStreak: parsedSave.currentStreak ?? 0,
+      bestStreak: parsedSave.bestStreak ?? 0,
+      lastCompletedDate: parsedSave.lastCompletedDate ?? null,
     };
 
     const today = getTodayDate();
 
     if (storedSave.currentDate !== today) {
+      const yesterday = getPreviousDate(today);
+
+      const streakIsStillAlive =
+        storedSave.lastCompletedDate === yesterday ||
+        storedSave.lastCompletedDate === today;
+
       const newDaySave: SaveData = {
         ...storedSave,
-
         currentDate: today,
         missionIndex: 0,
         dailyGlory: 0,
         completedMissions: [],
-
-        // La progression permanente des Piliers est conservée.
-        pillarProgress: storedSave.pillarProgress,
+        currentStreak: streakIsStillAlive
+          ? storedSave.currentStreak
+          : 0,
       };
 
       setSave(newDaySave);
@@ -128,18 +151,65 @@ export function useGame() {
         save.pillarProgress[currentMission.pillar] + currentMission.glory,
     };
 
+    const nextMissionIndex = save.missionIndex + 1;
+    const ritualCompleted = nextMissionIndex >= missions.length;
+    const today = getTodayDate();
+
+    let nextCurrentStreak = save.currentStreak;
+    let nextBestStreak = save.bestStreak;
+    let nextLastCompletedDate = save.lastCompletedDate;
+
+    if (ritualCompleted && save.lastCompletedDate !== today) {
+      const yesterday = getPreviousDate(today);
+
+      nextCurrentStreak =
+        save.lastCompletedDate === yesterday
+          ? save.currentStreak + 1
+          : 1;
+
+      nextBestStreak = Math.max(
+        save.bestStreak,
+        nextCurrentStreak
+      );
+
+      nextLastCompletedDate = today;
+    }
+
     updateSave({
       ...save,
-      missionIndex: save.missionIndex + 1,
+
+      missionIndex: nextMissionIndex,
+
       xp: save.xp + currentMission.xp,
       glory: save.glory + currentMission.glory,
       dailyGlory: save.dailyGlory + currentMission.glory,
-      bossHp: Math.max(save.bossHp - currentMission.damage, 0),
-      completedMissions: [...save.completedMissions, completedMission],
+
+      bossHp: Math.max(
+        save.bossHp - currentMission.damage,
+        0
+      ),
+
+      completedMissions: [
+        ...save.completedMissions,
+        completedMission,
+      ],
+
       pillarProgress: updatedPillarProgress,
+
+      currentStreak: nextCurrentStreak,
+      bestStreak: nextBestStreak,
+      lastCompletedDate: nextLastCompletedDate,
     });
 
-    setMessage(companionMissionMessages[currentMission.pillar]);
+    if (ritualCompleted) {
+      setMessage(
+        "Le Rituel de l’Aube est accompli. Une nouvelle journée rejoint ta Légende."
+      );
+    } else {
+      setMessage(
+        companionMissionMessages[currentMission.pillar]
+      );
+    }
   }
 
   function resetGame() {
@@ -151,12 +221,16 @@ export function useGame() {
   }
 
   function simulateNewDay() {
-    const newDaySave: SaveData = {
+    const simulatedSave: SaveData = {
       ...save,
       currentDate: "ancienne-date",
     };
 
-    localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(simulatedSave)
+    );
+
     window.location.reload();
   }
 

@@ -54,7 +54,13 @@ if (save.dailyGlory >= 28) dayState = "🌟 Légendaire";
   return (
     <main className="h-screen overflow-hidden bg-black text-white p-3 text-sm">
       <div className="h-full mx-auto max-w-[1800px] grid grid-rows-[64px_1fr] gap-3">
-        <TopBar heroLevel={heroLevel} xp={save.xp} glory={save.glory} />
+       <TopBar
+  heroLevel={heroLevel}
+  xp={save.xp}
+  glory={save.glory}
+  currentStreak={save.currentStreak}
+  bestStreak={save.bestStreak}
+/>
 
         <div className="grid grid-cols-12 grid-rows-[220px_240px_1fr] gap-3 min-h-0">
           <div className="col-span-3 row-span-2 min-h-0">
