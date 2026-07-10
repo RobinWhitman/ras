@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Card from "@/components/Card";
 import {
   buildingNames,
@@ -54,13 +53,6 @@ export default function KingdomPanel({
           );
         })}
       </div>
-
-      <Link
-        href="/kingdom"
-        className="mt-2 block rounded-lg border border-zinc-700 px-3 py-1.5 text-center text-[10px] font-bold text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
-      >
-        Ouvrir le Royaume complet →
-      </Link>
     </Card>
   );
 }
