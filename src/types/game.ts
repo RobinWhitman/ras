@@ -63,6 +63,8 @@ export interface Companion {
   success: string;
 }
 
+export type PillarProgress = Record<Pillar, number>;
+
 export interface SaveData {
   currentDate: string;
   missionIndex: number;
@@ -73,4 +75,6 @@ export interface SaveData {
 
   dailyGlory: number;
   completedMissions: CompletedMission[];
+
+  pillarProgress: PillarProgress;
 }

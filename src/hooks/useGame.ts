@@ -10,14 +10,37 @@ import {
 import type {
   CompletedMission,
   Pillar,
+  PillarProgress,
   SaveData,
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v8";
 const activeBoss = bosses[0];
 
+const pillars: Pillar[] = [
+  "Force",
+  "Savoir",
+  "Discipline",
+  "Santé",
+  "Leadership",
+  "Foi",
+  "Relations",
+];
+
 function getTodayDate() {
   return new Date().toLocaleDateString("fr-CA");
+}
+
+function createEmptyPillarProgress(): PillarProgress {
+  return {
+    Force: 0,
+    Savoir: 0,
+    Discipline: 0,
+    Santé: 0,
+    Leadership: 0,
+    Foi: 0,
+    Relations: 0,
+  };
 }
 
 function createDefaultSave(): SaveData {
@@ -31,6 +54,8 @@ function createDefaultSave(): SaveData {
 
     dailyGlory: 0,
     completedMissions: [],
+
+    pillarProgress: createEmptyPillarProgress(),
   };
 }
 
@@ -43,16 +68,31 @@ export function useGame() {
 
     if (!stored) return;
 
-    const storedSave: SaveData = JSON.parse(stored);
+    const parsedSave = JSON.parse(stored) as Partial<SaveData>;
+
+    const storedSave: SaveData = {
+      ...createDefaultSave(),
+      ...parsedSave,
+      pillarProgress: {
+        ...createEmptyPillarProgress(),
+        ...(parsedSave.pillarProgress ?? {}),
+      },
+      completedMissions: parsedSave.completedMissions ?? [],
+    };
+
     const today = getTodayDate();
 
     if (storedSave.currentDate !== today) {
       const newDaySave: SaveData = {
         ...storedSave,
+
         currentDate: today,
         missionIndex: 0,
         dailyGlory: 0,
         completedMissions: [],
+
+        // La progression permanente des Piliers est conservée.
+        pillarProgress: storedSave.pillarProgress,
       };
 
       setSave(newDaySave);
@@ -82,6 +122,12 @@ export function useGame() {
       glory: currentMission.glory,
     };
 
+    const updatedPillarProgress: PillarProgress = {
+      ...save.pillarProgress,
+      [currentMission.pillar]:
+        save.pillarProgress[currentMission.pillar] + currentMission.glory,
+    };
+
     updateSave({
       ...save,
       missionIndex: save.missionIndex + 1,
@@ -90,6 +136,7 @@ export function useGame() {
       dailyGlory: save.dailyGlory + currentMission.glory,
       bossHp: Math.max(save.bossHp - currentMission.damage, 0),
       completedMissions: [...save.completedMissions, completedMission],
+      pillarProgress: updatedPillarProgress,
     });
 
     setMessage(companionMissionMessages[currentMission.pillar]);
@@ -113,23 +160,10 @@ export function useGame() {
     window.location.reload();
   }
 
-  const pillars: Pillar[] = [
-    "Force",
-    "Savoir",
-    "Discipline",
-    "Santé",
-    "Leadership",
-    "Foi",
-    "Relations",
-  ];
-
-  const pillarScores = pillars.map((pillar) => {
-    const score = save.completedMissions
-      .filter((mission) => mission.pillar === pillar)
-      .reduce((total, mission) => total + mission.glory, 0);
-
-    return { pillar, score };
-  });
+  const pillarScores = pillars.map((pillar) => ({
+    pillar,
+    score: save.pillarProgress[pillar],
+  }));
 
   return {
     save,
