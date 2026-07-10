@@ -77,6 +77,7 @@ export interface SaveData {
 
   dailyGlory: number;
   completedMissions: CompletedMission[];
+  completedMissionIds: string[];
   dailyMissions: Mission[];
 
   pillarProgress: PillarProgress;

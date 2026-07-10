@@ -36,6 +36,7 @@ function getTodayDate() {
 function getPreviousDate(date: string) {
   const previousDate = new Date(`${date}T12:00:00`);
   previousDate.setDate(previousDate.getDate() - 1);
+
   return previousDate.toLocaleDateString("fr-CA");
 }
 
@@ -105,6 +106,7 @@ function createDefaultSave(): SaveData {
 
     dailyGlory: 0,
     completedMissions: [],
+    completedMissionIds: [],
     dailyMissions: cloneDefaultMissions(),
 
     pillarProgress: createEmptyPillarProgress(),
@@ -136,11 +138,17 @@ export function useGame() {
 
     const storedVersion = parsedSave.missionConfigVersion ?? 1;
 
+    const completedMissionIds =
+      parsedSave.completedMissionIds ??
+      parsedSave.completedMissions?.map((mission) => mission.id) ??
+      [];
+
     const storedSave: SaveData = {
       ...defaultSave,
       ...parsedSave,
 
       completedMissions: parsedSave.completedMissions ?? [],
+      completedMissionIds,
 
       dailyMissions: migrateMissions(
         storedMissions,
@@ -174,6 +182,7 @@ export function useGame() {
         missionIndex: 0,
         dailyGlory: 0,
         completedMissions: [],
+        completedMissionIds: [],
         currentStreak: streakStillAlive
           ? storedSave.currentStreak
           : 0,
@@ -189,35 +198,50 @@ export function useGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(storedSave));
   }, []);
 
-  const currentMission = save.dailyMissions[save.missionIndex];
-  const ritualStarted = save.missionIndex > 0;
+  const currentMission = save.dailyMissions.find(
+    (mission) => !save.completedMissionIds.includes(mission.id)
+  );
+
+  const ritualStarted = save.completedMissionIds.length > 0;
 
   function updateSave(nextSave: SaveData) {
     setSave(nextSave);
     localStorage.setItem(SAVE_KEY, JSON.stringify(nextSave));
   }
 
-  function accomplirMission() {
-    if (!currentMission) return;
+  function accomplirMission(missionId?: string) {
+    const missionToComplete = missionId
+      ? save.dailyMissions.find((mission) => mission.id === missionId)
+      : currentMission;
+
+    if (!missionToComplete) return;
+
+    if (save.completedMissionIds.includes(missionToComplete.id)) {
+      return;
+    }
 
     const completedMission: CompletedMission = {
-      id: currentMission.id,
-      title: currentMission.title,
-      pillar: currentMission.pillar,
-      xp: currentMission.xp,
-      glory: currentMission.glory,
+      id: missionToComplete.id,
+      title: missionToComplete.title,
+      pillar: missionToComplete.pillar,
+      xp: missionToComplete.xp,
+      glory: missionToComplete.glory,
     };
 
     const updatedPillarProgress: PillarProgress = {
       ...save.pillarProgress,
-      [currentMission.pillar]:
-        save.pillarProgress[currentMission.pillar] +
-        currentMission.glory,
+      [missionToComplete.pillar]:
+        save.pillarProgress[missionToComplete.pillar] +
+        missionToComplete.glory,
     };
 
-    const nextMissionIndex = save.missionIndex + 1;
+    const nextCompletedMissionIds = [
+      ...save.completedMissionIds,
+      missionToComplete.id,
+    ];
+
     const dayCompleted =
-      nextMissionIndex >= save.dailyMissions.length;
+      nextCompletedMissionIds.length >= save.dailyMissions.length;
 
     const today = getTodayDate();
 
@@ -243,14 +267,15 @@ export function useGame() {
 
     updateSave({
       ...save,
-      missionIndex: nextMissionIndex,
 
-      xp: save.xp + currentMission.xp,
-      glory: save.glory + currentMission.glory,
-      dailyGlory: save.dailyGlory + currentMission.glory,
+      missionIndex: nextCompletedMissionIds.length,
+
+      xp: save.xp + missionToComplete.xp,
+      glory: save.glory + missionToComplete.glory,
+      dailyGlory: save.dailyGlory + missionToComplete.glory,
 
       bossHp: Math.max(
-        save.bossHp - currentMission.damage,
+        save.bossHp - missionToComplete.damage,
         0
       ),
 
@@ -259,6 +284,7 @@ export function useGame() {
         completedMission,
       ],
 
+      completedMissionIds: nextCompletedMissionIds,
       pillarProgress: updatedPillarProgress,
 
       currentStreak: nextCurrentStreak,
@@ -269,7 +295,7 @@ export function useGame() {
     setMessage(
       dayCompleted
         ? "La journée est accomplie. Elle rejoint désormais ta Légende."
-        : companionMissionMessages[currentMission.pillar]
+        : companionMissionMessages[missionToComplete.pillar]
     );
   }
 

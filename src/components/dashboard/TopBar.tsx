@@ -16,9 +16,23 @@ export default function TopBar({
   bestStreak,
 }: TopBarProps) {
   return (
-    <header className="h-16 flex items-center justify-between border border-zinc-800 rounded-xl px-5">
-      <div className="flex items-center gap-5">
+    <header className="flex h-16 items-center justify-between rounded-xl border border-zinc-800 px-5">
+      <div className="flex items-center gap-3">
         <h1 className="text-4xl font-bold">RAS</h1>
+
+        <Link
+          href="/missions"
+          className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
+        >
+          🎯 Missions
+        </Link>
+
+        <Link
+          href="/journal"
+          className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
+        >
+          📖 Journal
+        </Link>
 
         <Link
           href="/settings"
