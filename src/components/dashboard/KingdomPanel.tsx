@@ -3,6 +3,7 @@ import {
   buildingNames,
   getBuildingProgress,
 } from "@/lib/buildings";
+import { BUILDING_BONUSES } from "@/lib/buildingBonuses";
 import type { Pillar } from "@/types/game";
 
 type KingdomPanelProps = {
@@ -30,6 +31,10 @@ export default function KingdomPanel({
       <div className="grid grid-cols-2 gap-1">
         {pillarScores.map((item) => {
           const progress = getBuildingProgress(item.score);
+          const bonus =
+  BUILDING_BONUSES[item.pillar][
+    Math.min(progress.level - 1, 4)
+  ];
 
           return (
             <div
@@ -38,6 +43,13 @@ export default function KingdomPanel({
             >
               <div className="flex items-center justify-between gap-1">
                 <p className="truncate text-[11px] font-bold">
+                  <p className="text-[9px] text-yellow-500">
+  {bonus.title}
+</p>
+
+<p className="text-[8px] text-zinc-500 truncate">
+  {bonus.description}
+</p>
                   {buildingIcons[item.pillar]}{" "}
                   {buildingNames[item.pillar]}
                 </p>
