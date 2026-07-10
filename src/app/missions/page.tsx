@@ -2,13 +2,18 @@
 
 import Link from "next/link";
 import { rituals } from "@/data/game";
+import MissionManager from "@/components/dashboard/MissionManager";
 import { useGame } from "@/hooks/useGame";
 
 export default function MissionsPage() {
   const {
     save,
     currentMission,
+    ritualStarted,
     accomplirMission,
+    addDailyMission,
+    removeDailyMission,
+    restoreDefaultMissions,
   } = useGame();
 
   const completedCount = save.completedMissionIds.length;
@@ -152,6 +157,24 @@ export default function MissionsPage() {
             );
           })}
         </div>
+
+        <section className="rounded-xl border border-zinc-800 p-5">
+          <h2 className="mb-2 text-2xl font-bold">
+            ⚙️ Configurer les Missions
+          </h2>
+
+          <p className="mb-5 text-zinc-400">
+            Modifie ici les missions de l’Aube, du Jour et du Crépuscule.
+          </p>
+
+          <MissionManager
+            missions={save.dailyMissions}
+            ritualStarted={ritualStarted}
+            onAddMission={addDailyMission}
+            onRemoveMission={removeDailyMission}
+            onRestoreDefaults={restoreDefaultMissions}
+          />
+        </section>
       </div>
     </main>
   );
