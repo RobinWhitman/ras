@@ -20,14 +20,15 @@ import DebugPanel from "./DebugPanel";
 import Card from "@/components/Card";
 
 export default function Dashboard() {
-  const {
-    save,
-    currentMission,
-    message,
-    pillarScores,
-    accomplirMission,
-    resetGame,
-  } = useGame();
+const {
+  save,
+  currentMission,
+  message,
+  pillarScores,
+  accomplirMission,
+  resetGame,
+  simulateNewDay,
+} = useGame();
 
   const activeChapter = chapters[0];
   const activeBoss = bosses[0];
@@ -46,9 +47,9 @@ export default function Dashboard() {
   const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
 
   let dayState = "🌙 Repos";
-  if (save.glory >= 5) dayState = "🛡 Solide";
-  if (save.glory >= 15) dayState = "⭐ Héroïque";
-  if (save.glory >= 28) dayState = "🌟 Légendaire";
+if (save.dailyGlory >= 5) dayState = "🛡 Solide";
+if (save.dailyGlory >= 15) dayState = "⭐ Héroïque";
+if (save.dailyGlory >= 28) dayState = "🌟 Légendaire";
 
   return (
     <main className="h-screen overflow-hidden bg-black text-white p-3 text-sm">
@@ -118,7 +119,10 @@ export default function Dashboard() {
           </div>
 
           <div className="col-span-3 min-h-0">
-            <DebugPanel onReset={resetGame} />
+          <DebugPanel
+  onReset={resetGame}
+  onSimulateNewDay={simulateNewDay}
+/>
           </div>
         </div>
       </div>

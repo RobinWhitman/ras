@@ -64,9 +64,13 @@ export interface Companion {
 }
 
 export interface SaveData {
+  currentDate: string;
   missionIndex: number;
+
   xp: number;
   glory: number;
   bossHp: number;
+
+  dailyGlory: number;
   completedMissions: CompletedMission[];
 }
