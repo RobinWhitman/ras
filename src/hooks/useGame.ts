@@ -103,17 +103,19 @@ export function useGame() {
     if (storedSave.currentDate !== today) {
       const yesterday = getPreviousDate(today);
 
-      const streakIsStillAlive =
+      const streakStillAlive =
         storedSave.lastCompletedDate === yesterday ||
         storedSave.lastCompletedDate === today;
 
       const newDaySave: SaveData = {
         ...storedSave,
+
         currentDate: today,
         missionIndex: 0,
         dailyGlory: 0,
         completedMissions: [],
-        currentStreak: streakIsStillAlive
+
+        currentStreak: streakStillAlive
           ? storedSave.currentStreak
           : 0,
       };
@@ -162,10 +164,11 @@ export function useGame() {
     if (ritualCompleted && save.lastCompletedDate !== today) {
       const yesterday = getPreviousDate(today);
 
-      nextCurrentStreak =
-        save.lastCompletedDate === yesterday
-          ? save.currentStreak + 1
-          : 1;
+      if (save.lastCompletedDate === yesterday) {
+        nextCurrentStreak = save.currentStreak + 1;
+      } else {
+        nextCurrentStreak = 1;
+      }
 
       nextBestStreak = Math.max(
         save.bestStreak,
@@ -221,9 +224,20 @@ export function useGame() {
   }
 
   function simulateNewDay() {
+    const today = getTodayDate();
+    const yesterday = getPreviousDate(today);
+
     const simulatedSave: SaveData = {
       ...save,
-      currentDate: "ancienne-date",
+
+      // On fait croire à RAS que la sauvegarde date d’hier.
+      currentDate: yesterday,
+
+      // Si une série existe, son dernier rituel est considéré comme accompli hier.
+      lastCompletedDate:
+        save.currentStreak > 0
+          ? yesterday
+          : null,
     };
 
     localStorage.setItem(
