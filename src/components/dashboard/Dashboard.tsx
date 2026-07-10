@@ -17,8 +17,6 @@ import BossPanel from "./BossPanel";
 import KingdomPanel from "./KingdomPanel";
 import PillarsPanel from "./PillarsPanel";
 import JournalPanel from "./JournalPanel";
-import DebugPanel from "./DebugPanel";
-import MissionManager from "./MissionManager";
 
 export default function Dashboard() {
   const {
@@ -26,30 +24,31 @@ export default function Dashboard() {
     currentMission,
     message,
     pillarScores,
-    ritualStarted,
     accomplirMission,
-    addDailyMission,
-    removeDailyMission,
-    restoreDefaultMissions,
-    resetGame,
-    simulateNewDay,
   } = useGame();
 
   const activeChapter = chapters[0];
   const activeBoss = bosses[0];
 
   const activeProject = currentMission
-    ? projects.find((project) => project.id === currentMission.projectId)
+    ? projects.find(
+        (project) => project.id === currentMission.projectId
+      )
     : projects[0];
 
   const activeRitual = currentMission
-    ? rituals.find((ritual) => ritual.id === currentMission.ritualId)
+    ? rituals.find(
+        (ritual) => ritual.id === currentMission.ritualId
+      )
     : rituals[0];
 
   const bossDefeated = save.bossHp <= 0;
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
-  const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
+
+  const unlockedBuildings = pillarScores.filter(
+    (item) => item.score > 0
+  );
 
   let dayState = "🌙 Repos";
 
@@ -66,8 +65,8 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="h-screen overflow-hidden bg-black text-white p-3 text-sm">
-      <div className="mx-auto grid h-full max-w-[1800px] grid-rows-[64px_1fr] gap-3">
+    <main className="h-dvh overflow-hidden bg-black p-3 text-sm text-white">
+      <div className="mx-auto grid h-full max-w-[1800px] grid-rows-[64px_minmax(0,1fr)] gap-3">
         <TopBar
           heroLevel={heroLevel}
           xp={save.xp}
@@ -76,7 +75,8 @@ export default function Dashboard() {
           bestStreak={save.bestStreak}
         />
 
-        <div className="grid min-h-0 grid-cols-12 grid-rows-[220px_240px_1fr] gap-3">
+        <div className="grid min-h-0 grid-cols-12 grid-rows-[200px_220px_minmax(0,1fr)] gap-3">
+          {/* Colonne gauche : Héros */}
           <div className="col-span-3 row-span-2 min-h-0">
             <HeroPanel
               heroLevel={heroLevel}
@@ -84,6 +84,7 @@ export default function Dashboard() {
             />
           </div>
 
+          {/* Centre haut : action principale */}
           <div className="col-span-6 min-h-0">
             <MorningPanel
               kingdomState={kingdom.state}
@@ -95,6 +96,7 @@ export default function Dashboard() {
             />
           </div>
 
+          {/* Droite haut : Boss */}
           <div className="col-span-3 min-h-0">
             <BossPanel
               boss={activeBoss}
@@ -103,10 +105,12 @@ export default function Dashboard() {
             />
           </div>
 
+          {/* Centre milieu gauche : Piliers */}
           <div className="col-span-3 min-h-0">
             <PillarsPanel pillarScores={pillarScores} />
           </div>
 
+          {/* Centre milieu droit : Royaume */}
           <div className="col-span-3 min-h-0">
             <KingdomPanel
               kingdomState={kingdom.state}
@@ -115,49 +119,61 @@ export default function Dashboard() {
             />
           </div>
 
+          {/* Droite : Journal sur deux rangées */}
           <div className="col-span-3 row-span-2 min-h-0">
-            <JournalPanel completedMissions={save.completedMissions} />
+            <JournalPanel
+              completedMissions={save.completedMissions}
+            />
           </div>
 
+          {/* Bas gauche : Compagnon */}
           <div className="col-span-3 min-h-0">
             <Card title="🧙 Compagnon">
-              <p>{message}</p>
-            </Card>
-          </div>
-
-          <div className="col-span-6 min-h-0">
-            <Card title="⚔ Chapitre">
-              <div className="grid grid-cols-3 gap-3">
-                <p>
-                  Chapitre : <strong>{activeChapter.title}</strong>
-                </p>
-
-                <p>
-                  Projet : <strong>{activeProject?.title}</strong>
-                </p>
-
-                <p>
-                  Rituel : <strong>{activeRitual?.title}</strong>
-                </p>
+              <div className="h-full overflow-y-auto">
+                <p>{message}</p>
               </div>
             </Card>
           </div>
 
-          <div className="col-span-3 min-h-0">
-            <MissionManager
-              missions={save.dailyMissions}
-              ritualStarted={ritualStarted}
-              onAddMission={addDailyMission}
-              onRemoveMission={removeDailyMission}
-              onRestoreDefaults={restoreDefaultMissions}
-            />
-          </div>
+          {/* Bas centre : Chapitre */}
+          <div className="col-span-6 min-h-0">
+            <Card title="⚔ Chapitre actif">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-zinc-500">
+                    Chapitre
+                  </p>
 
-          <div className="col-span-3 min-h-0">
-            <DebugPanel
-              onReset={resetGame}
-              onSimulateNewDay={simulateNewDay}
-            />
+                  <p className="font-bold">
+                    {activeChapter.title}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-zinc-500">
+                    Projet
+                  </p>
+
+                  <p className="font-bold">
+                    {activeProject?.title}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-zinc-500">
+                    Rituel
+                  </p>
+
+                  <p className="font-bold">
+                    {activeRitual?.title}
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-zinc-400">
+                {activeChapter.description}
+              </p>
+            </Card>
           </div>
         </div>
       </div>
