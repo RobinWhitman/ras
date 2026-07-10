@@ -27,35 +27,34 @@ export default function KingdomPanel({
 }: KingdomPanelProps) {
   return (
     <Card title="🏰 Royaume">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-1">
         {pillarScores.map((item) => {
           const progress = getBuildingProgress(item.score);
 
           return (
             <div
               key={item.pillar}
-              className="rounded-lg border border-zinc-800 p-2"
+              className="rounded-md border border-zinc-800 px-2 py-1"
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-xs font-bold">
+              <div className="flex items-center justify-between gap-1">
+                <p className="truncate text-[11px] font-bold">
                   {buildingIcons[item.pillar]}{" "}
                   {buildingNames[item.pillar]}
                 </p>
 
-                <span className="text-xs font-bold text-yellow-400">
+                <span className="text-[10px] font-bold text-yellow-400">
                   {item.score}
                 </span>
               </div>
 
-              <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-500">
+              <div className="mt-0.5 flex items-center justify-between text-[9px] text-zinc-500">
                 <span>Niv. {progress.level}</span>
-
                 <span>
                   {progress.current}/{progress.next}
                 </span>
               </div>
 
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-800">
+              <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-zinc-800">
                 <div
                   className="h-full rounded-full bg-yellow-500 transition-all duration-300"
                   style={{ width: `${progress.percent}%` }}
