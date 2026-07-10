@@ -9,6 +9,7 @@ import {
   rituals,
 } from "@/data/game";
 import { useGame } from "@/hooks/useGame";
+import Card from "@/components/Card";
 import TopBar from "./TopBar";
 import HeroPanel from "./HeroPanel";
 import MorningPanel from "./MorningPanel";
@@ -17,18 +18,22 @@ import KingdomPanel from "./KingdomPanel";
 import PillarsPanel from "./PillarsPanel";
 import JournalPanel from "./JournalPanel";
 import DebugPanel from "./DebugPanel";
-import Card from "@/components/Card";
+import MissionManager from "./MissionManager";
 
 export default function Dashboard() {
-const {
-  save,
-  currentMission,
-  message,
-  pillarScores,
-  accomplirMission,
-  resetGame,
-  simulateNewDay,
-} = useGame();
+  const {
+    save,
+    currentMission,
+    message,
+    pillarScores,
+    ritualStarted,
+    accomplirMission,
+    addDailyMission,
+    removeDailyMission,
+    restoreDefaultMissions,
+    resetGame,
+    simulateNewDay,
+  } = useGame();
 
   const activeChapter = chapters[0];
   const activeBoss = bosses[0];
@@ -47,24 +52,36 @@ const {
   const unlockedBuildings = pillarScores.filter((item) => item.score > 0);
 
   let dayState = "🌙 Repos";
-if (save.dailyGlory >= 5) dayState = "🛡 Solide";
-if (save.dailyGlory >= 15) dayState = "⭐ Héroïque";
-if (save.dailyGlory >= 28) dayState = "🌟 Légendaire";
+
+  if (save.dailyGlory >= 5) {
+    dayState = "🛡 Solide";
+  }
+
+  if (save.dailyGlory >= 15) {
+    dayState = "⭐ Héroïque";
+  }
+
+  if (save.dailyGlory >= 28) {
+    dayState = "🌟 Légendaire";
+  }
 
   return (
     <main className="h-screen overflow-hidden bg-black text-white p-3 text-sm">
-      <div className="h-full mx-auto max-w-[1800px] grid grid-rows-[64px_1fr] gap-3">
-       <TopBar
-  heroLevel={heroLevel}
-  xp={save.xp}
-  glory={save.glory}
-  currentStreak={save.currentStreak}
-  bestStreak={save.bestStreak}
-/>
+      <div className="mx-auto grid h-full max-w-[1800px] grid-rows-[64px_1fr] gap-3">
+        <TopBar
+          heroLevel={heroLevel}
+          xp={save.xp}
+          glory={save.glory}
+          currentStreak={save.currentStreak}
+          bestStreak={save.bestStreak}
+        />
 
-        <div className="grid grid-cols-12 grid-rows-[220px_240px_1fr] gap-3 min-h-0">
+        <div className="grid min-h-0 grid-cols-12 grid-rows-[220px_240px_1fr] gap-3">
           <div className="col-span-3 row-span-2 min-h-0">
-            <HeroPanel heroLevel={heroLevel} currentLevelXp={currentLevelXp} />
+            <HeroPanel
+              heroLevel={heroLevel}
+              currentLevelXp={currentLevelXp}
+            />
           </div>
 
           <div className="col-span-6 min-h-0">
@@ -114,9 +131,11 @@ if (save.dailyGlory >= 28) dayState = "🌟 Légendaire";
                 <p>
                   Chapitre : <strong>{activeChapter.title}</strong>
                 </p>
+
                 <p>
                   Projet : <strong>{activeProject?.title}</strong>
                 </p>
+
                 <p>
                   Rituel : <strong>{activeRitual?.title}</strong>
                 </p>
@@ -125,10 +144,20 @@ if (save.dailyGlory >= 28) dayState = "🌟 Légendaire";
           </div>
 
           <div className="col-span-3 min-h-0">
-          <DebugPanel
-  onReset={resetGame}
-  onSimulateNewDay={simulateNewDay}
-/>
+            <MissionManager
+              missions={save.dailyMissions}
+              ritualStarted={ritualStarted}
+              onAddMission={addDailyMission}
+              onRemoveMission={removeDailyMission}
+              onRestoreDefaults={restoreDefaultMissions}
+            />
+          </div>
+
+          <div className="col-span-3 min-h-0">
+            <DebugPanel
+              onReset={resetGame}
+              onSimulateNewDay={simulateNewDay}
+            />
           </div>
         </div>
       </div>
