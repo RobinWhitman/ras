@@ -113,9 +113,7 @@ export default function Dashboard() {
           {/* Centre milieu droit : Royaume */}
           <div className="col-span-3 min-h-0">
             <KingdomPanel
-              kingdomState={kingdom.state}
-              unlockedBuildings={unlockedBuildings}
-              kingdomBuildings={kingdomBuildings}
+    pillarScores={pillarScores}
             />
           </div>
 
