@@ -7,6 +7,8 @@ export type Pillar =
   | "Foi"
   | "Relations";
 
+export type RitualTime = "Aube" | "Jour" | "Crépuscule";
+
 export interface Chapter {
   id: string;
   title: string;
@@ -30,7 +32,7 @@ export interface Project {
 export interface Ritual {
   id: string;
   title: string;
-  time: "Aube" | "Jour" | "Crépuscule";
+  time: RitualTime;
 }
 
 export interface Mission {
@@ -82,4 +84,6 @@ export interface SaveData {
   currentStreak: number;
   bestStreak: number;
   lastCompletedDate: string | null;
+
+  missionConfigVersion: number;
 }

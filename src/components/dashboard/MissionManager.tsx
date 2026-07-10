@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { rituals } from "@/data/game";
 import type { Mission, Pillar } from "@/types/game";
 
 type MissionManagerProps = {
   missions: Mission[];
   ritualStarted: boolean;
-  onAddMission: (title: string, pillar: Pillar) => void;
+  onAddMission: (
+    title: string,
+    pillar: Pillar,
+    ritualId: string
+  ) => void;
   onRemoveMission: (missionId: string) => void;
   onRestoreDefaults: () => void;
 };
@@ -29,63 +34,96 @@ export default function MissionManager({
   onRestoreDefaults,
 }: MissionManagerProps) {
   const [title, setTitle] = useState("");
-  const [pillar, setPillar] = useState<Pillar>("Discipline");
+  const [pillar, setPillar] =
+    useState<Pillar>("Discipline");
+  const [ritualId, setRitualId] =
+    useState("ritual-aube");
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
-    onAddMission(title, pillar);
+    onAddMission(title, pillar, ritualId);
     setTitle("");
   }
 
   return (
-    <details className="border border-zinc-800 rounded-xl p-3">
-      <summary className="cursor-pointer font-bold">
-        ⚙️ Configurer le Rituel de l’Aube
-      </summary>
-
+    <div className="space-y-5">
       {ritualStarted ? (
-        <p className="mt-3 text-zinc-400">
-          Le rituel a commencé. La liste sera modifiable demain.
+        <p className="text-zinc-400">
+          La journée a commencé. La liste sera modifiable demain.
         </p>
       ) : (
-        <div className="mt-4 space-y-4">
-          <ul className="space-y-2 max-h-48 overflow-y-auto">
-            {missions.map((mission, index) => (
-              <li
-                key={mission.id}
-                className="flex items-center justify-between gap-3 border border-zinc-800 rounded-lg p-3"
-              >
-                <div>
-                  <p className="font-semibold">
-                    {index + 1}. {mission.title}
-                  </p>
+        <>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {rituals.map((ritual) => {
+              const ritualMissions = missions.filter(
+                (mission) => mission.ritualId === ritual.id
+              );
 
-                  <p className="text-xs text-zinc-400">
-                    {mission.pillar} · +{mission.xp} XP · +{mission.glory} Glory
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onRemoveMission(mission.id)}
-                  className="text-red-400 font-bold px-2"
+              return (
+                <section
+                  key={ritual.id}
+                  className="rounded-xl border border-zinc-800 p-4"
                 >
-                  Supprimer
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <h3 className="mb-3 text-lg font-bold">
+                    {ritual.time === "Aube" && "🌅 "}
+                    {ritual.time === "Jour" && "☀️ "}
+                    {ritual.time === "Crépuscule" && "🌙 "}
+                    {ritual.title}
+                  </h3>
+
+                  {ritualMissions.length === 0 ? (
+                    <p className="text-sm text-zinc-500">
+                      Aucune mission.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {ritualMissions.map((mission, index) => (
+                        <li
+                          key={mission.id}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 p-3"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {index + 1}. {mission.title}
+                            </p>
+
+                            <p className="text-xs text-zinc-500">
+                              {mission.pillar} · +{mission.xp} XP
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onRemoveMission(mission.id)
+                            }
+                            className="text-xs font-bold text-red-400"
+                          >
+                            Supprimer
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              );
+            })}
+          </div>
 
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-2"
+            className="grid gap-2 rounded-xl border border-zinc-800 p-4 md:grid-cols-[1fr_170px_190px_auto]"
           >
             <input
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) =>
+                setTitle(event.target.value)
+              }
               placeholder="Nouvelle mission"
-              className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white"
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
             />
 
             <select
@@ -93,7 +131,7 @@ export default function MissionManager({
               onChange={(event) =>
                 setPillar(event.target.value as Pillar)
               }
-              className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white"
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
             >
               {pillars.map((item) => (
                 <option key={item} value={item}>
@@ -102,9 +140,23 @@ export default function MissionManager({
               ))}
             </select>
 
+            <select
+              value={ritualId}
+              onChange={(event) =>
+                setRitualId(event.target.value)
+              }
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+            >
+              {rituals.map((ritual) => (
+                <option key={ritual.id} value={ritual.id}>
+                  {ritual.title}
+                </option>
+              ))}
+            </select>
+
             <button
               type="submit"
-              className="bg-yellow-500 text-black font-bold rounded-lg px-4 py-2"
+              className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black"
             >
               Ajouter
             </button>
@@ -115,10 +167,10 @@ export default function MissionManager({
             onClick={onRestoreDefaults}
             className="text-sm text-zinc-400 underline"
           >
-            Restaurer les missions par défaut
+            Restaurer toutes les missions par défaut
           </button>
-        </div>
+        </>
       )}
-    </details>
+    </div>
   );
 }

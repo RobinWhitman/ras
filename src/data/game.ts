@@ -4,6 +4,7 @@ import type {
   Companion,
   Kingdom,
   Mission,
+  Pillar,
   Project,
   Ritual,
 } from "@/types/game";
@@ -12,7 +13,8 @@ export const chapters: Chapter[] = [
   {
     id: "chapter-ras",
     title: "Création de RAS",
-    description: "Forger le premier compagnon de vie utilisable au quotidien.",
+    description:
+      "Forger le premier compagnon de vie utilisable au quotidien.",
   },
 ];
 
@@ -37,12 +39,23 @@ export const projects: Project[] = [
 export const rituals: Ritual[] = [
   {
     id: "ritual-aube",
-    title: "Rituel de l'Aube",
+    title: "Rituel de l’Aube",
     time: "Aube",
+  },
+  {
+    id: "ritual-jour",
+    title: "Rituel du Jour",
+    time: "Jour",
+  },
+  {
+    id: "ritual-crepuscule",
+    title: "Rituel du Crépuscule",
+    time: "Crépuscule",
   },
 ];
 
 export const missions: Mission[] = [
+  // AUBE
   {
     id: "mission-ouvrir-ras",
     chapterId: "chapter-ras",
@@ -61,7 +74,7 @@ export const missions: Mission[] = [
     bossId: "boss-chaos",
     projectId: "project-ras-v1",
     ritualId: "ritual-aube",
-    title: "Boire un grand verre d'eau",
+    title: "Boire un grand verre d’eau",
     pillar: "Santé",
     xp: 10,
     glory: 5,
@@ -91,26 +104,66 @@ export const missions: Mission[] = [
     glory: 8,
     damage: 8,
   },
+
+  // JOUR
   {
-    id: "mission-mobilite",
+    id: "mission-action-prioritaire",
     chapterId: "chapter-ras",
     bossId: "boss-chaos",
     projectId: "project-ras-v1",
-    ritualId: "ritual-aube",
-    title: "Faire 5 minutes de mobilité",
-    pillar: "Santé",
-    xp: 20,
-    glory: 10,
-    damage: 10,
+    ritualId: "ritual-jour",
+    title: "Accomplir l’action prioritaire du jour",
+    pillar: "Leadership",
+    xp: 30,
+    glory: 15,
+    damage: 15,
+  },
+  {
+    id: "mission-seance",
+    chapterId: "chapter-ras",
+    bossId: "boss-chaos",
+    projectId: "project-ras-v1",
+    ritualId: "ritual-jour",
+    title: "Faire la séance prévue",
+    pillar: "Force",
+    xp: 30,
+    glory: 15,
+    damage: 15,
+  },
+
+  // CRÉPUSCULE
+  {
+    id: "mission-preparer-demain",
+    chapterId: "chapter-ras",
+    bossId: "boss-chaos",
+    projectId: "project-ras-v1",
+    ritualId: "ritual-crepuscule",
+    title: "Préparer la journée de demain",
+    pillar: "Discipline",
+    xp: 15,
+    glory: 8,
+    damage: 8,
+  },
+  {
+    id: "mission-gratitude",
+    chapterId: "chapter-ras",
+    bossId: "boss-chaos",
+    projectId: "project-ras-v1",
+    ritualId: "ritual-crepuscule",
+    title: "Faire le bilan et exprimer une gratitude",
+    pillar: "Foi",
+    xp: 15,
+    glory: 8,
+    damage: 8,
   },
 ];
 
 export const kingdom: Kingdom = {
-  state: "Le Royaume s'éveille...",
+  state: "Le Royaume s’éveille...",
 };
 
-export const kingdomBuildings = {
-  Force: "Arène d'entraînement",
+export const kingdomBuildings: Record<Pillar, string> = {
+  Force: "Arène d’entraînement",
   Savoir: "Bibliothèque",
   Discipline: "Tour de garde",
   Santé: "Jardin des soins",
@@ -124,10 +177,10 @@ export const companion: Companion = {
   success: "Bien. Le Royaume a senti ton action. Le Chaos recule.",
 };
 
-export const companionMissionMessages = {
+export const companionMissionMessages: Record<Pillar, string> = {
   Discipline: "La Discipline renforce les fondations du Royaume.",
   Santé: "Le corps récupère. Le Royaume respire mieux.",
-  Foi: "La Foi éclaire la route avant l'action.",
+  Foi: "La Foi éclaire la route avant l’action.",
   Force: "La Force prépare le Héros au combat.",
   Savoir: "Le Savoir agrandit les murs invisibles du Royaume.",
   Leadership: "Le Leadership donne une direction au Royaume.",

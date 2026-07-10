@@ -16,6 +16,7 @@ import type {
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v9";
+const CONFIG_VERSION = 2;
 const activeBoss = bosses[0];
 
 const pillars: Pillar[] = [
@@ -35,7 +36,6 @@ function getTodayDate() {
 function getPreviousDate(date: string) {
   const previousDate = new Date(`${date}T12:00:00`);
   previousDate.setDate(previousDate.getDate() - 1);
-
   return previousDate.toLocaleDateString("fr-CA");
 }
 
@@ -53,6 +53,45 @@ function createEmptyPillarProgress(): PillarProgress {
 
 function cloneDefaultMissions(): Mission[] {
   return defaultMissions.map((mission) => ({ ...mission }));
+}
+
+function migrateMissions(
+  existingMissions: Mission[],
+  version: number
+): Mission[] {
+  if (version >= CONFIG_VERSION) {
+    return existingMissions;
+  }
+
+  const migratedMissions = [...existingMissions];
+
+  const hasDayMissions = migratedMissions.some(
+    (mission) => mission.ritualId === "ritual-jour"
+  );
+
+  const hasDuskMissions = migratedMissions.some(
+    (mission) => mission.ritualId === "ritual-crepuscule"
+  );
+
+  if (!hasDayMissions) {
+    migratedMissions.push(
+      ...defaultMissions
+        .filter((mission) => mission.ritualId === "ritual-jour")
+        .map((mission) => ({ ...mission }))
+    );
+  }
+
+  if (!hasDuskMissions) {
+    migratedMissions.push(
+      ...defaultMissions
+        .filter(
+          (mission) => mission.ritualId === "ritual-crepuscule"
+        )
+        .map((mission) => ({ ...mission }))
+    );
+  }
+
+  return migratedMissions;
 }
 
 function createDefaultSave(): SaveData {
@@ -73,6 +112,8 @@ function createDefaultSave(): SaveData {
     currentStreak: 0,
     bestStreak: 0,
     lastCompletedDate: null,
+
+    missionConfigVersion: CONFIG_VERSION,
   };
 }
 
@@ -88,15 +129,23 @@ export function useGame() {
     const parsedSave = JSON.parse(stored) as Partial<SaveData>;
     const defaultSave = createDefaultSave();
 
+    const storedMissions =
+      parsedSave.dailyMissions?.length
+        ? parsedSave.dailyMissions
+        : cloneDefaultMissions();
+
+    const storedVersion = parsedSave.missionConfigVersion ?? 1;
+
     const storedSave: SaveData = {
       ...defaultSave,
       ...parsedSave,
 
       completedMissions: parsedSave.completedMissions ?? [],
-      dailyMissions:
-        parsedSave.dailyMissions?.length
-          ? parsedSave.dailyMissions
-          : cloneDefaultMissions(),
+
+      dailyMissions: migrateMissions(
+        storedMissions,
+        storedVersion
+      ),
 
       pillarProgress: {
         ...createEmptyPillarProgress(),
@@ -106,6 +155,8 @@ export function useGame() {
       currentStreak: parsedSave.currentStreak ?? 0,
       bestStreak: parsedSave.bestStreak ?? 0,
       lastCompletedDate: parsedSave.lastCompletedDate ?? null,
+
+      missionConfigVersion: CONFIG_VERSION,
     };
 
     const today = getTodayDate();
@@ -135,6 +186,7 @@ export function useGame() {
     }
 
     setSave(storedSave);
+    localStorage.setItem(SAVE_KEY, JSON.stringify(storedSave));
   }, []);
 
   const currentMission = save.dailyMissions[save.missionIndex];
@@ -159,11 +211,12 @@ export function useGame() {
     const updatedPillarProgress: PillarProgress = {
       ...save.pillarProgress,
       [currentMission.pillar]:
-        save.pillarProgress[currentMission.pillar] + currentMission.glory,
+        save.pillarProgress[currentMission.pillar] +
+        currentMission.glory,
     };
 
     const nextMissionIndex = save.missionIndex + 1;
-    const ritualCompleted =
+    const dayCompleted =
       nextMissionIndex >= save.dailyMissions.length;
 
     const today = getTodayDate();
@@ -172,7 +225,7 @@ export function useGame() {
     let nextBestStreak = save.bestStreak;
     let nextLastCompletedDate = save.lastCompletedDate;
 
-    if (ritualCompleted && save.lastCompletedDate !== today) {
+    if (dayCompleted && save.lastCompletedDate !== today) {
       const yesterday = getPreviousDate(today);
 
       nextCurrentStreak =
@@ -214,13 +267,17 @@ export function useGame() {
     });
 
     setMessage(
-      ritualCompleted
-        ? "Le Rituel de l’Aube est accompli. Une nouvelle journée rejoint ta Légende."
+      dayCompleted
+        ? "La journée est accomplie. Elle rejoint désormais ta Légende."
         : companionMissionMessages[currentMission.pillar]
     );
   }
 
-  function addDailyMission(title: string, pillar: Pillar) {
+  function addDailyMission(
+    title: string,
+    pillar: Pillar,
+    ritualId: string
+  ) {
     if (ritualStarted || !title.trim()) return;
 
     const newMission: Mission = {
@@ -228,7 +285,7 @@ export function useGame() {
       chapterId: "chapter-ras",
       bossId: "boss-chaos",
       projectId: "project-ras-v1",
-      ritualId: "ritual-aube",
+      ritualId,
       title: title.trim(),
       pillar,
       xp: 10,
@@ -236,9 +293,24 @@ export function useGame() {
       damage: 5,
     };
 
+    const ritualOrder = [
+      "ritual-aube",
+      "ritual-jour",
+      "ritual-crepuscule",
+    ];
+
+    const updatedMissions = [
+      ...save.dailyMissions,
+      newMission,
+    ].sort(
+      (a, b) =>
+        ritualOrder.indexOf(a.ritualId) -
+        ritualOrder.indexOf(b.ritualId)
+    );
+
     updateSave({
       ...save,
-      dailyMissions: [...save.dailyMissions, newMission],
+      dailyMissions: updatedMissions,
     });
   }
 
@@ -259,6 +331,7 @@ export function useGame() {
     updateSave({
       ...save,
       dailyMissions: cloneDefaultMissions(),
+      missionConfigVersion: CONFIG_VERSION,
     });
   }
 
