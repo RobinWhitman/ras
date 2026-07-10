@@ -71,7 +71,7 @@ export default function Dashboard() {
         />
 
         <div className="grid min-h-0 grid-cols-12 grid-rows-[200px_220px_minmax(0,1fr)] gap-3">
-          {/* HÉROS — gauche, deux rangées */}
+          {/* HÉROS — gauche, deux premières rangées */}
           <div className="col-span-3 row-span-2 min-h-0">
             <HeroPanel
               heroLevel={heroLevel}
@@ -91,8 +91,8 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* ROYAUME — droite, deux rangées */}
-          <div className="col-span-3 row-span-2 min-h-0">
+          {/* ROYAUME — bloc orange, uniquement en haut à droite */}
+          <div className="col-span-3 min-h-0">
             <KingdomPanel pillarScores={pillarScores} />
           </div>
 
@@ -110,6 +110,13 @@ export default function Dashboard() {
             />
           </div>
 
+          {/* JOURNAL — bloc rouge, deux rangées à droite */}
+          <div className="col-span-3 row-span-2 min-h-0">
+            <JournalPanel
+              completedMissions={save.completedMissions}
+            />
+          </div>
+
           {/* COMPAGNON — bas gauche */}
           <div className="col-span-3 min-h-0">
             <Card title="🧙 Compagnon">
@@ -124,21 +131,30 @@ export default function Dashboard() {
             <Card title="⚔ Chapitre actif">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-zinc-500">Chapitre</p>
+                  <p className="text-xs text-zinc-500">
+                    Chapitre
+                  </p>
+
                   <p className="font-bold">
                     {activeChapter.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">Projet</p>
+                  <p className="text-xs text-zinc-500">
+                    Projet
+                  </p>
+
                   <p className="font-bold">
                     {activeProject?.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">Rituel</p>
+                  <p className="text-xs text-zinc-500">
+                    Rituel
+                  </p>
+
                   <p className="font-bold">
                     {activeRitual?.title}
                   </p>
@@ -149,13 +165,6 @@ export default function Dashboard() {
                 {activeChapter.description}
               </p>
             </Card>
-          </div>
-
-          {/* JOURNAL — bas droite */}
-          <div className="col-span-3 min-h-0">
-            <JournalPanel
-              completedMissions={save.completedMissions}
-            />
           </div>
         </div>
       </div>
