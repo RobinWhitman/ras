@@ -4,7 +4,6 @@ import {
   bosses,
   chapters,
   kingdom,
-  kingdomBuildings,
   projects,
   rituals,
 } from "@/data/game";
@@ -46,10 +45,6 @@ export default function Dashboard() {
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
 
-  const unlockedBuildings = pillarScores.filter(
-    (item) => item.score > 0
-  );
-
   let dayState = "🌙 Repos";
 
   if (save.dailyGlory >= 5) {
@@ -76,7 +71,7 @@ export default function Dashboard() {
         />
 
         <div className="grid min-h-0 grid-cols-12 grid-rows-[200px_220px_minmax(0,1fr)] gap-3">
-          {/* Colonne gauche : Héros */}
+          {/* HÉROS — gauche, deux rangées */}
           <div className="col-span-3 row-span-2 min-h-0">
             <HeroPanel
               heroLevel={heroLevel}
@@ -84,7 +79,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Centre haut : action principale */}
+          {/* CONSEIL — centre haut */}
           <div className="col-span-6 min-h-0">
             <MorningPanel
               kingdomState={kingdom.state}
@@ -92,11 +87,21 @@ export default function Dashboard() {
               chapterTitle={activeChapter.title}
               bossName={activeBoss.name}
               currentMission={currentMission}
-              onAccomplish={accomplirMission}
+              onAccomplish={() => accomplirMission()}
             />
           </div>
 
-          {/* Droite haut : Boss */}
+          {/* ROYAUME — droite, deux rangées */}
+          <div className="col-span-3 row-span-2 min-h-0">
+            <KingdomPanel pillarScores={pillarScores} />
+          </div>
+
+          {/* PILIERS — centre milieu gauche */}
+          <div className="col-span-3 min-h-0">
+            <PillarsPanel pillarScores={pillarScores} />
+          </div>
+
+          {/* BOSS — centre milieu droit */}
           <div className="col-span-3 min-h-0">
             <BossPanel
               boss={activeBoss}
@@ -105,26 +110,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Centre milieu gauche : Piliers */}
-          <div className="col-span-3 min-h-0">
-            <PillarsPanel pillarScores={pillarScores} />
-          </div>
-
-          {/* Centre milieu droit : Royaume */}
-          <div className="col-span-3 min-h-0">
-            <KingdomPanel
-    pillarScores={pillarScores}
-            />
-          </div>
-
-          {/* Droite : Journal sur deux rangées */}
-          <div className="col-span-3 row-span-2 min-h-0">
-            <JournalPanel
-              completedMissions={save.completedMissions}
-            />
-          </div>
-
-          {/* Bas gauche : Compagnon */}
+          {/* COMPAGNON — bas gauche */}
           <div className="col-span-3 min-h-0">
             <Card title="🧙 Compagnon">
               <div className="h-full overflow-y-auto">
@@ -133,35 +119,26 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Bas centre : Chapitre */}
+          {/* CHAPITRE — bas centre */}
           <div className="col-span-6 min-h-0">
             <Card title="⚔ Chapitre actif">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-zinc-500">
-                    Chapitre
-                  </p>
-
+                  <p className="text-xs text-zinc-500">Chapitre</p>
                   <p className="font-bold">
                     {activeChapter.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">
-                    Projet
-                  </p>
-
+                  <p className="text-xs text-zinc-500">Projet</p>
                   <p className="font-bold">
                     {activeProject?.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">
-                    Rituel
-                  </p>
-
+                  <p className="text-xs text-zinc-500">Rituel</p>
                   <p className="font-bold">
                     {activeRitual?.title}
                   </p>
@@ -172,6 +149,13 @@ export default function Dashboard() {
                 {activeChapter.description}
               </p>
             </Card>
+          </div>
+
+          {/* JOURNAL — bas droite */}
+          <div className="col-span-3 min-h-0">
+            <JournalPanel
+              completedMissions={save.completedMissions}
+            />
           </div>
         </div>
       </div>
