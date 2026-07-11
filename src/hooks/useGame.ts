@@ -9,6 +9,7 @@ import {
 } from "@/data/game";
 import type {
   CompletedMission,
+  DayArchive,
   Mission,
   Pillar,
   PillarProgress,
@@ -109,6 +110,8 @@ function createDefaultSave(): SaveData {
     completedMissionIds: [],
     dailyMissions: cloneDefaultMissions(),
 
+    dayHistory: [],
+
     pillarProgress: createEmptyPillarProgress(),
 
     currentStreak: 0,
@@ -117,6 +120,20 @@ function createDefaultSave(): SaveData {
 
     missionConfigVersion: CONFIG_VERSION,
     defeatedBossIds: [],
+  };
+}
+
+function createDayArchive(save: SaveData): DayArchive {
+  const xpGained = save.completedMissions.reduce(
+    (total, mission) => total + mission.xp,
+    0
+  );
+
+  return {
+    date: save.currentDate,
+    xpGained,
+    gloryGained: save.dailyGlory,
+    completedMissions: save.completedMissions,
   };
 }
 
@@ -161,6 +178,8 @@ export function useGame() {
         storedVersion
       ),
 
+      dayHistory: parsedSave.dayHistory ?? [],
+
       pillarProgress: {
         ...createEmptyPillarProgress(),
         ...(parsedSave.pillarProgress ?? {}),
@@ -190,26 +209,48 @@ export function useGame() {
         storedSave.lastCompletedDate === yesterday ||
         storedSave.lastCompletedDate === today;
 
+      const shouldArchiveDay =
+        storedSave.completedMissions.length > 0 ||
+        storedSave.dailyGlory > 0;
+
+      const historyWithoutDuplicate =
+        storedSave.dayHistory.filter(
+          (day) => day.date !== storedSave.currentDate
+        );
+
+      const nextHistory = shouldArchiveDay
+        ? [
+            createDayArchive(storedSave),
+            ...historyWithoutDuplicate,
+          ]
+        : historyWithoutDuplicate;
+
       const newDaySave: SaveData = {
         ...storedSave,
+
         currentDate: today,
         missionIndex: 0,
+
         dailyGlory: 0,
         completedMissions: [],
         completedMissionIds: [],
+
+        dayHistory: nextHistory,
+
         currentStreak: streakStillAlive
           ? storedSave.currentStreak
           : 0,
       };
 
       setSave(newDaySave);
+
       localStorage.setItem(
         SAVE_KEY,
         JSON.stringify(newDaySave)
       );
 
       setMessage(
-        "Une nouvelle journée commence. Le Royaume s’éveille."
+        "Une nouvelle journée commence. La précédente rejoint les Archives."
       );
 
       return;
@@ -291,16 +332,11 @@ export function useGame() {
     const bossJustDefeated =
       save.bossHp > 0 &&
       nextBossHp === 0 &&
-      !save.defeatedBossIds.includes(
-        activeBoss.id
-      );
+      !save.defeatedBossIds.includes(activeBoss.id);
 
     const nextDefeatedBossIds =
       bossJustDefeated
-        ? [
-            ...save.defeatedBossIds,
-            activeBoss.id,
-          ]
+        ? [...save.defeatedBossIds, activeBoss.id]
         : save.defeatedBossIds;
 
     const bossReward =
@@ -310,21 +346,15 @@ export function useGame() {
 
     const today = getTodayDate();
 
-    let nextCurrentStreak =
-      save.currentStreak;
-
-    let nextBestStreak =
-      save.bestStreak;
-
-    let nextLastCompletedDate =
-      save.lastCompletedDate;
+    let nextCurrentStreak = save.currentStreak;
+    let nextBestStreak = save.bestStreak;
+    let nextLastCompletedDate = save.lastCompletedDate;
 
     if (
       dayCompleted &&
       save.lastCompletedDate !== today
     ) {
-      const yesterday =
-        getPreviousDate(today);
+      const yesterday = getPreviousDate(today);
 
       nextCurrentStreak =
         save.lastCompletedDate === yesterday
@@ -394,7 +424,7 @@ export function useGame() {
 
     if (dayCompleted) {
       setMessage(
-        "La journée est accomplie. Elle rejoint désormais ta Légende."
+        "La journée est accomplie. Elle rejoindra les Archives au prochain jour."
       );
 
       return;
@@ -412,10 +442,7 @@ export function useGame() {
     pillar: Pillar,
     ritualId: string
   ) {
-    if (
-      ritualStarted ||
-      !title.trim()
-    ) {
+    if (ritualStarted || !title.trim()) {
       return;
     }
 
@@ -474,6 +501,7 @@ export function useGame() {
 
     updateSave({
       ...save,
+
       dailyMissions:
         cloneDefaultMissions(),
 
@@ -483,8 +511,7 @@ export function useGame() {
   }
 
   function resetGame() {
-    const freshSave =
-      createDefaultSave();
+    const freshSave = createDefaultSave();
 
     localStorage.removeItem(SAVE_KEY);
 
@@ -494,8 +521,7 @@ export function useGame() {
 
   function simulateNewDay() {
     const today = getTodayDate();
-    const yesterday =
-      getPreviousDate(today);
+    const yesterday = getPreviousDate(today);
 
     const simulatedSave: SaveData = {
       ...save,

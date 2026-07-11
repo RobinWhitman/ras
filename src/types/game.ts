@@ -67,6 +67,13 @@ export interface CompletedMission {
   glory: number;
 }
 
+export interface DayArchive {
+  date: string;
+  xpGained: number;
+  gloryGained: number;
+  completedMissions: CompletedMission[];
+}
+
 export interface Kingdom {
   state: string;
 }
@@ -90,6 +97,8 @@ export interface SaveData {
   completedMissions: CompletedMission[];
   completedMissionIds: string[];
   dailyMissions: Mission[];
+
+  dayHistory: DayArchive[];
 
   pillarProgress: PillarProgress;
 
