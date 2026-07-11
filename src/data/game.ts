@@ -23,7 +23,38 @@ export const bosses: Boss[] = [
     id: "boss-chaos",
     chapterId: "chapter-ras",
     name: "Le Chaos Quotidien",
+    description:
+      "Une force insidieuse qui transforme les journées sans direction en désordre, dispersion et abandon.",
+    ability: "Désorganisation",
+    weakness: "Discipline",
     maxHp: 100,
+    rewardGlory: 150,
+    phases: [
+      {
+        name: "Le Brouillard",
+        minHpPercent: 67,
+        description:
+          "Le Chaos brouille les priorités et rend chaque action plus difficile à commencer.",
+      },
+      {
+        name: "La Résistance",
+        minHpPercent: 34,
+        description:
+          "Le Chaos résiste et tente de détourner le Héros de ses engagements.",
+      },
+      {
+        name: "Le Dernier Rempart",
+        minHpPercent: 1,
+        description:
+          "Le Chaos vacille, mais rassemble ses dernières forces.",
+      },
+      {
+        name: "Vaincu",
+        minHpPercent: 0,
+        description:
+          "Le Chaos Quotidien a été repoussé.",
+      },
+    ],
   },
 ];
 
@@ -55,7 +86,6 @@ export const rituals: Ritual[] = [
 ];
 
 export const missions: Mission[] = [
-  // AUBE
   {
     id: "mission-ouvrir-ras",
     chapterId: "chapter-ras",
@@ -104,8 +134,6 @@ export const missions: Mission[] = [
     glory: 8,
     damage: 8,
   },
-
-  // JOUR
   {
     id: "mission-action-prioritaire",
     chapterId: "chapter-ras",
@@ -130,8 +158,6 @@ export const missions: Mission[] = [
     glory: 15,
     damage: 15,
   },
-
-  // CRÉPUSCULE
   {
     id: "mission-preparer-demain",
     chapterId: "chapter-ras",

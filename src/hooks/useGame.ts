@@ -116,6 +116,7 @@ function createDefaultSave(): SaveData {
     lastCompletedDate: null,
 
     missionConfigVersion: CONFIG_VERSION,
+    defeatedBossIds: [],
   };
 }
 
@@ -136,18 +137,23 @@ export function useGame() {
         ? parsedSave.dailyMissions
         : cloneDefaultMissions();
 
-    const storedVersion = parsedSave.missionConfigVersion ?? 1;
+    const storedVersion =
+      parsedSave.missionConfigVersion ?? 1;
 
     const completedMissionIds =
       parsedSave.completedMissionIds ??
-      parsedSave.completedMissions?.map((mission) => mission.id) ??
+      parsedSave.completedMissions?.map(
+        (mission) => mission.id
+      ) ??
       [];
 
     const storedSave: SaveData = {
       ...defaultSave,
       ...parsedSave,
 
-      completedMissions: parsedSave.completedMissions ?? [],
+      completedMissions:
+        parsedSave.completedMissions ?? [],
+
       completedMissionIds,
 
       dailyMissions: migrateMissions(
@@ -160,9 +166,17 @@ export function useGame() {
         ...(parsedSave.pillarProgress ?? {}),
       },
 
-      currentStreak: parsedSave.currentStreak ?? 0,
-      bestStreak: parsedSave.bestStreak ?? 0,
-      lastCompletedDate: parsedSave.lastCompletedDate ?? null,
+      currentStreak:
+        parsedSave.currentStreak ?? 0,
+
+      bestStreak:
+        parsedSave.bestStreak ?? 0,
+
+      lastCompletedDate:
+        parsedSave.lastCompletedDate ?? null,
+
+      defeatedBossIds:
+        parsedSave.defeatedBossIds ?? [],
 
       missionConfigVersion: CONFIG_VERSION,
     };
@@ -189,34 +203,57 @@ export function useGame() {
       };
 
       setSave(newDaySave);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
-      setMessage("Une nouvelle journée commence. Le Royaume s’éveille.");
+      localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(newDaySave)
+      );
+
+      setMessage(
+        "Une nouvelle journée commence. Le Royaume s’éveille."
+      );
+
       return;
     }
 
     setSave(storedSave);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(storedSave));
+
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(storedSave)
+    );
   }, []);
 
   const currentMission = save.dailyMissions.find(
-    (mission) => !save.completedMissionIds.includes(mission.id)
+    (mission) =>
+      !save.completedMissionIds.includes(mission.id)
   );
 
-  const ritualStarted = save.completedMissionIds.length > 0;
+  const ritualStarted =
+    save.completedMissionIds.length > 0;
 
   function updateSave(nextSave: SaveData) {
     setSave(nextSave);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(nextSave));
+
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(nextSave)
+    );
   }
 
   function accomplirMission(missionId?: string) {
     const missionToComplete = missionId
-      ? save.dailyMissions.find((mission) => mission.id === missionId)
+      ? save.dailyMissions.find(
+          (mission) => mission.id === missionId
+        )
       : currentMission;
 
     if (!missionToComplete) return;
 
-    if (save.completedMissionIds.includes(missionToComplete.id)) {
+    if (
+      save.completedMissionIds.includes(
+        missionToComplete.id
+      )
+    ) {
       return;
     }
 
@@ -230,9 +267,11 @@ export function useGame() {
 
     const updatedPillarProgress: PillarProgress = {
       ...save.pillarProgress,
+
       [missionToComplete.pillar]:
-        save.pillarProgress[missionToComplete.pillar] +
-        missionToComplete.glory,
+        save.pillarProgress[
+          missionToComplete.pillar
+        ] + missionToComplete.glory,
     };
 
     const nextCompletedMissionIds = [
@@ -241,16 +280,51 @@ export function useGame() {
     ];
 
     const dayCompleted =
-      nextCompletedMissionIds.length >= save.dailyMissions.length;
+      nextCompletedMissionIds.length >=
+      save.dailyMissions.length;
+
+    const nextBossHp = Math.max(
+      save.bossHp - missionToComplete.damage,
+      0
+    );
+
+    const bossJustDefeated =
+      save.bossHp > 0 &&
+      nextBossHp === 0 &&
+      !save.defeatedBossIds.includes(
+        activeBoss.id
+      );
+
+    const nextDefeatedBossIds =
+      bossJustDefeated
+        ? [
+            ...save.defeatedBossIds,
+            activeBoss.id,
+          ]
+        : save.defeatedBossIds;
+
+    const bossReward =
+      bossJustDefeated
+        ? activeBoss.rewardGlory
+        : 0;
 
     const today = getTodayDate();
 
-    let nextCurrentStreak = save.currentStreak;
-    let nextBestStreak = save.bestStreak;
-    let nextLastCompletedDate = save.lastCompletedDate;
+    let nextCurrentStreak =
+      save.currentStreak;
 
-    if (dayCompleted && save.lastCompletedDate !== today) {
-      const yesterday = getPreviousDate(today);
+    let nextBestStreak =
+      save.bestStreak;
+
+    let nextLastCompletedDate =
+      save.lastCompletedDate;
+
+    if (
+      dayCompleted &&
+      save.lastCompletedDate !== today
+    ) {
+      const yesterday =
+        getPreviousDate(today);
 
       nextCurrentStreak =
         save.lastCompletedDate === yesterday
@@ -268,34 +342,68 @@ export function useGame() {
     updateSave({
       ...save,
 
-      missionIndex: nextCompletedMissionIds.length,
+      missionIndex:
+        nextCompletedMissionIds.length,
 
-      xp: save.xp + missionToComplete.xp,
-      glory: save.glory + missionToComplete.glory,
-      dailyGlory: save.dailyGlory + missionToComplete.glory,
+      xp:
+        save.xp +
+        missionToComplete.xp,
 
-      bossHp: Math.max(
-        save.bossHp - missionToComplete.damage,
-        0
-      ),
+      glory:
+        save.glory +
+        missionToComplete.glory +
+        bossReward,
+
+      dailyGlory:
+        save.dailyGlory +
+        missionToComplete.glory,
+
+      bossHp: nextBossHp,
 
       completedMissions: [
         ...save.completedMissions,
         completedMission,
       ],
 
-      completedMissionIds: nextCompletedMissionIds,
-      pillarProgress: updatedPillarProgress,
+      completedMissionIds:
+        nextCompletedMissionIds,
 
-      currentStreak: nextCurrentStreak,
-      bestStreak: nextBestStreak,
-      lastCompletedDate: nextLastCompletedDate,
+      pillarProgress:
+        updatedPillarProgress,
+
+      currentStreak:
+        nextCurrentStreak,
+
+      bestStreak:
+        nextBestStreak,
+
+      lastCompletedDate:
+        nextLastCompletedDate,
+
+      defeatedBossIds:
+        nextDefeatedBossIds,
     });
 
+    if (bossJustDefeated) {
+      setMessage(
+        `Le Boss ${activeBoss.name} est vaincu. Le Royaume reçoit ${activeBoss.rewardGlory} Glory.`
+      );
+
+      return;
+    }
+
+    if (dayCompleted) {
+      setMessage(
+        "La journée est accomplie. Elle rejoint désormais ta Légende."
+      );
+
+      return;
+    }
+
     setMessage(
-      dayCompleted
-        ? "La journée est accomplie. Elle rejoint désormais ta Légende."
-        : companionMissionMessages[missionToComplete.pillar]
+      companionMissionMessages[
+        missionToComplete.pillar
+      ]
     );
   }
 
@@ -304,7 +412,12 @@ export function useGame() {
     pillar: Pillar,
     ritualId: string
   ) {
-    if (ritualStarted || !title.trim()) return;
+    if (
+      ritualStarted ||
+      !title.trim()
+    ) {
+      return;
+    }
 
     const newMission: Mission = {
       id: `mission-${Date.now()}`,
@@ -340,14 +453,19 @@ export function useGame() {
     });
   }
 
-  function removeDailyMission(missionId: string) {
+  function removeDailyMission(
+    missionId: string
+  ) {
     if (ritualStarted) return;
 
     updateSave({
       ...save,
-      dailyMissions: save.dailyMissions.filter(
-        (mission) => mission.id !== missionId
-      ),
+
+      dailyMissions:
+        save.dailyMissions.filter(
+          (mission) =>
+            mission.id !== missionId
+        ),
     });
   }
 
@@ -356,26 +474,34 @@ export function useGame() {
 
     updateSave({
       ...save,
-      dailyMissions: cloneDefaultMissions(),
-      missionConfigVersion: CONFIG_VERSION,
+      dailyMissions:
+        cloneDefaultMissions(),
+
+      missionConfigVersion:
+        CONFIG_VERSION,
     });
   }
 
   function resetGame() {
-    const freshSave = createDefaultSave();
+    const freshSave =
+      createDefaultSave();
 
     localStorage.removeItem(SAVE_KEY);
+
     setSave(freshSave);
     setMessage(companion.start);
   }
 
   function simulateNewDay() {
     const today = getTodayDate();
-    const yesterday = getPreviousDate(today);
+    const yesterday =
+      getPreviousDate(today);
 
     const simulatedSave: SaveData = {
       ...save,
+
       currentDate: yesterday,
+
       lastCompletedDate:
         save.currentStreak > 0
           ? yesterday
@@ -390,10 +516,13 @@ export function useGame() {
     window.location.reload();
   }
 
-  const pillarScores = pillars.map((pillar) => ({
-    pillar,
-    score: save.pillarProgress[pillar],
-  }));
+  const pillarScores = pillars.map(
+    (pillar) => ({
+      pillar,
+      score:
+        save.pillarProgress[pillar],
+    })
+  );
 
   return {
     save,

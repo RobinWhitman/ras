@@ -15,11 +15,22 @@ export interface Chapter {
   description: string;
 }
 
+export interface BossPhase {
+  name: string;
+  minHpPercent: number;
+  description: string;
+}
+
 export interface Boss {
   id: string;
   chapterId: string;
   name: string;
+  description: string;
+  ability: string;
+  weakness: Pillar;
   maxHp: number;
+  rewardGlory: number;
+  phases: BossPhase[];
 }
 
 export interface Project {
@@ -87,4 +98,5 @@ export interface SaveData {
   lastCompletedDate: string | null;
 
   missionConfigVersion: number;
+  defeatedBossIds: string[];
 }
