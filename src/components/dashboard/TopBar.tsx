@@ -28,6 +28,13 @@ export default function TopBar({
         </Link>
 
         <Link
+          href="/projects"
+          className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
+        >
+          📜 Projets
+        </Link>
+
+        <Link
           href="/kingdom"
           className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
         >
@@ -51,7 +58,10 @@ export default function TopBar({
 
       <div className="flex items-center gap-8 text-right">
         <div>
-          <p className="font-bold">🔥 Série : {currentStreak}</p>
+          <p className="font-bold">
+            🔥 Série : {currentStreak}
+          </p>
+
           <p className="text-xs text-zinc-400">
             Record : {bestStreak}
           </p>
