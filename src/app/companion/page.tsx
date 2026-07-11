@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { bosses } from "@/data/game";
+import { companionProfile } from "@/data/companionProfile";
 import { useGame } from "@/hooks/useGame";
 import { createGameMasterBriefing } from "@/lib/gameMaster";
 
 const priorityClasses = {
-  haute:
-    "border-red-900 bg-red-950/20",
-  moyenne:
-    "border-yellow-900 bg-yellow-950/10",
-  basse:
-    "border-zinc-800",
+  haute: "border-red-900 bg-red-950/20",
+  moyenne: "border-yellow-900 bg-yellow-950/10",
+  basse: "border-zinc-800",
 };
 
 export default function CompanionPage() {
@@ -37,12 +35,12 @@ export default function CompanionPage() {
       <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex items-center justify-between rounded-xl border border-zinc-800 p-5">
           <div>
-            <p className="text-sm uppercase tracking-widest text-yellow-400">
+            <p className="text-sm uppercase tracking-widest text-green-400">
               RAS
             </p>
 
             <h1 className="text-3xl font-bold">
-              🧙 Compagnon
+              🐈‍⬛ {companionProfile.name}
             </h1>
           </div>
 
@@ -58,28 +56,40 @@ export default function CompanionPage() {
           <article className="rounded-xl border border-zinc-800 p-5">
             <div className="flex aspect-square items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950">
               <div className="text-center">
-                <p className="text-7xl">🧙</p>
+                <p className="text-8xl">🐈‍⬛</p>
 
-                <p className="mt-3 text-sm text-zinc-500">
-                  Apparence définitive à venir
+                <p className="mt-3 font-bold text-green-400">
+                  Yeux verts
+                </p>
+
+                <p className="mt-1 text-sm text-zinc-500">
+                  Portrait définitif à venir
                 </p>
               </div>
             </div>
 
             <div className="mt-5 text-center">
-              <h2 className="text-2xl font-bold">
-                Le Premier Conseiller
+              <h2 className="text-3xl font-bold">
+                {companionProfile.name}
               </h2>
 
-              <p className="mt-2 text-yellow-400">
-                Voix du Royaume
+              <p className="mt-1 font-bold text-green-400">
+                {companionProfile.title}
+              </p>
+
+              <p className="mt-1 text-sm text-zinc-400">
+                {companionProfile.role}
               </p>
             </div>
+
+            <p className="mt-5 text-sm leading-relaxed text-zinc-400">
+              {companionProfile.description}
+            </p>
           </article>
 
-          <article className="rounded-xl border border-yellow-700 bg-yellow-500/10 p-6">
-            <p className="text-sm uppercase tracking-widest text-yellow-400">
-              Conseil actuel
+          <article className="rounded-xl border border-green-800 bg-green-950/10 p-6">
+            <p className="text-sm uppercase tracking-widest text-green-400">
+              Conseil de LOKI
             </p>
 
             <h2 className="mt-3 text-4xl font-bold">
@@ -90,7 +100,7 @@ export default function CompanionPage() {
               {briefing.summary}
             </p>
 
-            <div className="mt-6 rounded-xl border border-yellow-700 p-5">
+            <div className="mt-6 rounded-xl border border-green-800 p-5">
               <p className="text-xs uppercase tracking-widest text-zinc-500">
                 Priorité immédiate
               </p>
@@ -99,11 +109,10 @@ export default function CompanionPage() {
                 {briefing.mainObjective}
               </p>
 
-              {briefing.recommendedMission && (
+              {briefing.recommendedMission ? (
                 <>
                   <p className="mt-2 text-sm text-zinc-400">
-                    Pilier :{" "}
-                    {briefing.recommendedMission.pillar}
+                    Pilier : {briefing.recommendedMission.pillar}
                     {" · "}
                     +{briefing.recommendedMission.xp} XP
                     {" · "}
@@ -117,11 +126,15 @@ export default function CompanionPage() {
                         briefing.recommendedMission?.id
                       )
                     }
-                    className="mt-5 w-full rounded-xl bg-yellow-500 px-5 py-3 font-bold text-black"
+                    className="mt-5 w-full rounded-xl bg-green-500 px-5 py-3 font-bold text-black"
                   >
                     ✅ Accomplir la Mission
                   </button>
                 </>
+              ) : (
+                <p className="mt-3 text-green-400">
+                  Toutes les Missions du jour sont accomplies.
+                </p>
               )}
             </div>
           </article>
@@ -133,15 +146,14 @@ export default function CompanionPage() {
               Progression de la journée
             </h2>
 
-            <p className="font-bold text-yellow-400">
-              {briefing.completedCount} /{" "}
-              {briefing.totalCount}
+            <p className="font-bold text-green-400">
+              {briefing.completedCount} / {briefing.totalCount}
             </p>
           </div>
 
           <div className="h-4 overflow-hidden rounded-full bg-zinc-800">
             <div
-              className="h-full bg-yellow-500 transition-all duration-500"
+              className="h-full bg-green-500 transition-all duration-500"
               style={{
                 width: `${briefing.progressPercent}%`,
               }}
@@ -149,8 +161,7 @@ export default function CompanionPage() {
           </div>
 
           <p className="mt-2 text-sm text-zinc-500">
-            {briefing.progressPercent}% de la journée
-            accomplie
+            {briefing.progressPercent}% de la journée accomplie
           </p>
         </section>
 
@@ -163,9 +174,7 @@ export default function CompanionPage() {
               }`}
             >
               <div className="flex items-start gap-4">
-                <p className="text-3xl">
-                  {alert.icon}
-                </p>
+                <p className="text-3xl">{alert.icon}</p>
 
                 <div>
                   <p className="text-xs uppercase tracking-widest text-zinc-500">
@@ -191,7 +200,7 @@ export default function CompanionPage() {
               Pilier recommandé
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-yellow-400">
+            <p className="mt-2 text-2xl font-bold text-green-400">
               {briefing.recommendedPillar}
             </p>
           </article>
@@ -217,13 +226,13 @@ export default function CompanionPage() {
           </article>
         </section>
 
-        <section className="rounded-xl border border-zinc-800 p-5">
-          <h2 className="text-2xl font-bold">
-            Dernière parole du Compagnon
-          </h2>
+        <section className="rounded-xl border border-green-900 p-5">
+          <p className="text-sm uppercase tracking-widest text-green-400">
+            Dernière parole de LOKI
+          </p>
 
-          <p className="mt-3 text-zinc-400">
-            {message}
+          <p className="mt-3 text-xl font-semibold">
+            « {message} »
           </p>
         </section>
       </div>

@@ -119,15 +119,15 @@ export default function Dashboard() {
 
           {/* COMPAGNON — bas gauche */}
           <div className="col-span-3 min-h-0">
-            <Card title="🧙 Compagnon">
+            <Card title="🐈‍⬛ LOKI">
   <div className="flex h-full flex-col">
     <p className="flex-1">{message}</p>
 
     <a
       href="/companion"
-      className="mt-3 rounded-lg border border-zinc-700 px-3 py-2 text-center text-xs font-bold transition hover:border-yellow-500 hover:text-yellow-400"
+      className="mt-3 rounded-lg border border-green-900 px-3 py-2 text-center text-xs font-bold text-green-400 transition hover:border-green-500"
     >
-      Ouvrir le Compagnon →
+      Consulter LOKI →
     </a>
   </div>
 </Card>
