@@ -120,10 +120,17 @@ export default function Dashboard() {
           {/* COMPAGNON — bas gauche */}
           <div className="col-span-3 min-h-0">
             <Card title="🧙 Compagnon">
-              <div className="h-full overflow-y-auto">
-                <p>{message}</p>
-              </div>
-            </Card>
+  <div className="flex h-full flex-col">
+    <p className="flex-1">{message}</p>
+
+    <a
+      href="/companion"
+      className="mt-3 rounded-lg border border-zinc-700 px-3 py-2 text-center text-xs font-bold transition hover:border-yellow-500 hover:text-yellow-400"
+    >
+      Ouvrir le Compagnon →
+    </a>
+  </div>
+</Card>
           </div>
 
           {/* CHAPITRE — bas centre */}

@@ -20,11 +20,17 @@ export default function TopBar({
 }: TopBarProps) {
   return (
     <header className="flex h-16 items-center justify-between rounded-xl border border-zinc-800 px-5">
-      <div className="flex items-center gap-3">
-        <h1 className="text-4xl font-bold">RAS</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="mr-1 text-4xl font-bold">
+          RAS
+        </h1>
 
         <Link href="/missions" className={linkClass}>
           🎯 Missions
+        </Link>
+
+        <Link href="/companion" className={linkClass}>
+          🧙 Compagnon
         </Link>
 
         <Link href="/hero" className={linkClass}>
@@ -48,27 +54,27 @@ export default function TopBar({
         </Link>
 
         <Link href="/settings" className={linkClass}>
-          ⚙️ Paramètres
+          ⚙️
         </Link>
       </div>
 
-      <div className="flex items-center gap-8 text-right">
+      <div className="flex items-center gap-6 text-right">
         <div>
           <p className="font-bold">
-            🔥 Série : {currentStreak}
+            🔥 {currentStreak}
           </p>
 
           <p className="text-xs text-zinc-400">
-            Record : {bestStreak}
+            Record {bestStreak}
           </p>
         </div>
 
         <div>
-          <p className="text-lg font-bold">
-            Robin — Niveau {heroLevel}
+          <p className="font-bold">
+            Robin — Niv. {heroLevel}
           </p>
 
-          <p className="text-sm text-zinc-400">
+          <p className="text-xs text-zinc-400">
             XP {xp} · Glory {glory}
           </p>
         </div>
