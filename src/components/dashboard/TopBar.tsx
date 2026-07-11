@@ -27,6 +27,10 @@ export default function TopBar({
           🎯 Missions
         </Link>
 
+        <Link href="/hero" className={linkClass}>
+          🧍 Héros
+        </Link>
+
         <Link href="/chapter" className={linkClass}>
           📕 Chapitre
         </Link>
