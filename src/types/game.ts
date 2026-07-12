@@ -72,6 +72,8 @@ export interface DayArchive {
   xpGained: number;
   gloryGained: number;
   completedMissions: CompletedMission[];
+  skippedMissionCount: number;
+  plannedMissionCount: number;
 }
 
 export interface Kingdom {
@@ -96,6 +98,7 @@ export interface SaveData {
   dailyGlory: number;
   completedMissions: CompletedMission[];
   completedMissionIds: string[];
+  skippedMissionIds: string[];
   dailyMissions: Mission[];
 
   dayHistory: DayArchive[];

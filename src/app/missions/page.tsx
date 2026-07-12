@@ -11,18 +11,24 @@ export default function MissionsPage() {
     currentMission,
     ritualStarted,
     accomplirMission,
+    skipMission,
     addDailyMission,
     removeDailyMission,
     restoreDefaultMissions,
   } = useGame();
 
-  const completedCount = save.completedMissionIds.length;
+  const resolvedCount =
+    save.completedMissionIds.length +
+    save.skippedMissionIds.length;
+
   const totalCount = save.dailyMissions.length;
 
   const progress =
     totalCount === 0
       ? 0
-      : Math.round((completedCount / totalCount) * 100);
+      : Math.round(
+          (resolvedCount / totalCount) * 100
+        );
 
   return (
     <main className="min-h-screen bg-black p-6 text-white">
@@ -48,12 +54,19 @@ export default function MissionsPage() {
 
         <section className="rounded-xl border border-zinc-800 p-5">
           <div className="mb-3 flex items-center justify-between">
-            <p className="font-bold">
-              Progression de la journée
-            </p>
+            <div>
+              <p className="font-bold">
+                Progression de la journée
+              </p>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                {save.completedMissionIds.length} accomplie(s) ·{" "}
+                {save.skippedMissionIds.length} au repos
+              </p>
+            </div>
 
             <p className="text-yellow-400">
-              {completedCount} / {totalCount}
+              {resolvedCount} / {totalCount}
             </p>
           </div>
 
@@ -68,13 +81,20 @@ export default function MissionsPage() {
         <div className="grid gap-5 lg:grid-cols-3">
           {rituals.map((ritual) => {
             const ritualMissions = save.dailyMissions.filter(
-              (mission) => mission.ritualId === ritual.id
+              (mission) =>
+                mission.ritualId === ritual.id
             );
 
-            const ritualCompleted = ritualMissions.filter(
-              (mission) =>
-                save.completedMissionIds.includes(mission.id)
-            ).length;
+            const ritualResolved =
+              ritualMissions.filter(
+                (mission) =>
+                  save.completedMissionIds.includes(
+                    mission.id
+                  ) ||
+                  save.skippedMissionIds.includes(
+                    mission.id
+                  )
+              ).length;
 
             return (
               <section
@@ -90,14 +110,21 @@ export default function MissionsPage() {
                   </h2>
 
                   <span className="text-sm text-zinc-400">
-                    {ritualCompleted}/{ritualMissions.length}
+                    {ritualResolved}/{ritualMissions.length}
                   </span>
                 </div>
 
                 <div className="space-y-3">
                   {ritualMissions.map((mission) => {
                     const completed =
-                      save.completedMissionIds.includes(mission.id);
+                      save.completedMissionIds.includes(
+                        mission.id
+                      );
+
+                    const skipped =
+                      save.skippedMissionIds.includes(
+                        mission.id
+                      );
 
                     const recommended =
                       currentMission?.id === mission.id;
@@ -108,15 +135,18 @@ export default function MissionsPage() {
                         className={`rounded-xl border p-4 ${
                           completed
                             ? "border-green-900 bg-green-950/20"
-                            : recommended
-                              ? "border-yellow-500 bg-yellow-500/10"
-                              : "border-zinc-800"
+                            : skipped
+                              ? "border-zinc-700 bg-zinc-900/60 opacity-70"
+                              : recommended
+                                ? "border-yellow-500 bg-yellow-500/10"
+                                : "border-zinc-800"
                         }`}
                       >
                         <div className="mb-3 flex items-start justify-between gap-3">
                           <div>
                             <h3 className="font-bold">
                               {completed && "✅ "}
+                              {skipped && "🌙 "}
                               {mission.title}
                             </h3>
 
@@ -126,29 +156,50 @@ export default function MissionsPage() {
                             </p>
                           </div>
 
-                          {recommended && !completed && (
-                            <span className="rounded-full border border-yellow-500 px-2 py-1 text-[10px] font-bold text-yellow-400">
-                              RECOMMANDÉE
-                            </span>
-                          )}
+                          {recommended &&
+                            !completed &&
+                            !skipped && (
+                              <span className="rounded-full border border-yellow-500 px-2 py-1 text-[10px] font-bold text-yellow-400">
+                                RECOMMANDÉE
+                              </span>
+                            )}
                         </div>
 
-                        <button
-                          type="button"
-                          disabled={completed}
-                          onClick={() =>
-                            accomplirMission(mission.id)
-                          }
-                          className={`w-full rounded-lg px-4 py-2 font-bold ${
-                            completed
-                              ? "cursor-default bg-zinc-800 text-zinc-500"
-                              : "bg-yellow-500 text-black"
-                          }`}
-                        >
-                          {completed
-                            ? "Mission accomplie"
-                            : "Accomplir"}
-                        </button>
+                        {completed ? (
+                          <div className="rounded-lg bg-green-950/30 px-4 py-2 text-center font-bold text-green-400">
+                            Mission accomplie
+                          </div>
+                        ) : skipped ? (
+                          <div className="rounded-lg bg-zinc-800 px-4 py-2 text-center font-bold text-zinc-400">
+                            Au repos aujourd’hui
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                accomplirMission(
+                                  mission.id
+                                )
+                              }
+                              className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black"
+                            >
+                              Accomplir
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                skipMission(
+                                  mission.id
+                                )
+                              }
+                              className="rounded-lg border border-zinc-700 px-4 py-2 font-bold text-zinc-300"
+                            >
+                              🌙 Pas aujourd’hui
+                            </button>
+                          </div>
+                        )}
                       </article>
                     );
                   })}
@@ -164,7 +215,8 @@ export default function MissionsPage() {
           </h2>
 
           <p className="mb-5 text-zinc-400">
-            Modifie ici les missions de l’Aube, du Jour et du Crépuscule.
+            Modifie ici les Missions de l’Aube, du Jour et du
+            Crépuscule.
           </p>
 
           <MissionManager

@@ -108,6 +108,7 @@ function createDefaultSave(): SaveData {
     dailyGlory: 0,
     completedMissions: [],
     completedMissionIds: [],
+    skippedMissionIds: [],
     dailyMissions: cloneDefaultMissions(),
 
     dayHistory: [],
@@ -134,6 +135,8 @@ function createDayArchive(save: SaveData): DayArchive {
     xpGained,
     gloryGained: save.dailyGlory,
     completedMissions: save.completedMissions,
+    skippedMissionCount: save.skippedMissionIds.length,
+    plannedMissionCount: save.dailyMissions.length,
   };
 }
 
@@ -173,12 +176,22 @@ export function useGame() {
 
       completedMissionIds,
 
+      skippedMissionIds:
+        parsedSave.skippedMissionIds ?? [],
+
       dailyMissions: migrateMissions(
         storedMissions,
         storedVersion
       ),
 
-      dayHistory: parsedSave.dayHistory ?? [],
+      dayHistory: (parsedSave.dayHistory ?? []).map((day) => ({
+        ...day,
+        skippedMissionCount:
+          day.skippedMissionCount ?? 0,
+        plannedMissionCount:
+          day.plannedMissionCount ??
+          day.completedMissions.length,
+      })),
 
       pillarProgress: {
         ...createEmptyPillarProgress(),
@@ -211,6 +224,7 @@ export function useGame() {
 
       const shouldArchiveDay =
         storedSave.completedMissions.length > 0 ||
+        storedSave.skippedMissionIds.length > 0 ||
         storedSave.dailyGlory > 0;
 
       const historyWithoutDuplicate =
@@ -234,6 +248,7 @@ export function useGame() {
         dailyGlory: 0,
         completedMissions: [],
         completedMissionIds: [],
+        skippedMissionIds: [],
 
         dayHistory: nextHistory,
 
@@ -243,7 +258,6 @@ export function useGame() {
       };
 
       setSave(newDaySave);
-
       localStorage.setItem(
         SAVE_KEY,
         JSON.stringify(newDaySave)
@@ -257,20 +271,24 @@ export function useGame() {
     }
 
     setSave(storedSave);
-
     localStorage.setItem(
       SAVE_KEY,
       JSON.stringify(storedSave)
     );
   }, []);
 
+  const resolvedMissionIds = [
+    ...save.completedMissionIds,
+    ...save.skippedMissionIds,
+  ];
+
   const currentMission = save.dailyMissions.find(
     (mission) =>
-      !save.completedMissionIds.includes(mission.id)
+      !resolvedMissionIds.includes(mission.id)
   );
 
   const ritualStarted =
-    save.completedMissionIds.length > 0;
+    resolvedMissionIds.length > 0;
 
   function updateSave(nextSave: SaveData) {
     setSave(nextSave);
@@ -279,6 +297,43 @@ export function useGame() {
       SAVE_KEY,
       JSON.stringify(nextSave)
     );
+  }
+
+  function calculateStreak(
+    nextResolvedCount: number
+  ) {
+    const dayCompleted =
+      save.dailyMissions.length > 0 &&
+      nextResolvedCount >= save.dailyMissions.length;
+
+    const today = getTodayDate();
+
+    if (
+      !dayCompleted ||
+      save.lastCompletedDate === today
+    ) {
+      return {
+        currentStreak: save.currentStreak,
+        bestStreak: save.bestStreak,
+        lastCompletedDate: save.lastCompletedDate,
+      };
+    }
+
+    const yesterday = getPreviousDate(today);
+
+    const currentStreak =
+      save.lastCompletedDate === yesterday
+        ? save.currentStreak + 1
+        : 1;
+
+    return {
+      currentStreak,
+      bestStreak: Math.max(
+        save.bestStreak,
+        currentStreak
+      ),
+      lastCompletedDate: today,
+    };
   }
 
   function accomplirMission(missionId?: string) {
@@ -292,6 +347,9 @@ export function useGame() {
 
     if (
       save.completedMissionIds.includes(
+        missionToComplete.id
+      ) ||
+      save.skippedMissionIds.includes(
         missionToComplete.id
       )
     ) {
@@ -320,9 +378,12 @@ export function useGame() {
       missionToComplete.id,
     ];
 
+    const nextResolvedCount =
+      nextCompletedMissionIds.length +
+      save.skippedMissionIds.length;
+
     const dayCompleted =
-      nextCompletedMissionIds.length >=
-      save.dailyMissions.length;
+      nextResolvedCount >= save.dailyMissions.length;
 
     const nextBossHp = Math.max(
       save.bossHp - missionToComplete.damage,
@@ -344,36 +405,14 @@ export function useGame() {
         ? activeBoss.rewardGlory
         : 0;
 
-    const today = getTodayDate();
-
-    let nextCurrentStreak = save.currentStreak;
-    let nextBestStreak = save.bestStreak;
-    let nextLastCompletedDate = save.lastCompletedDate;
-
-    if (
-      dayCompleted &&
-      save.lastCompletedDate !== today
-    ) {
-      const yesterday = getPreviousDate(today);
-
-      nextCurrentStreak =
-        save.lastCompletedDate === yesterday
-          ? save.currentStreak + 1
-          : 1;
-
-      nextBestStreak = Math.max(
-        save.bestStreak,
-        nextCurrentStreak
-      );
-
-      nextLastCompletedDate = today;
-    }
+    const streak = calculateStreak(
+      nextResolvedCount
+    );
 
     updateSave({
       ...save,
 
-      missionIndex:
-        nextCompletedMissionIds.length,
+      missionIndex: nextResolvedCount,
 
       xp:
         save.xp +
@@ -402,13 +441,13 @@ export function useGame() {
         updatedPillarProgress,
 
       currentStreak:
-        nextCurrentStreak,
+        streak.currentStreak,
 
       bestStreak:
-        nextBestStreak,
+        streak.bestStreak,
 
       lastCompletedDate:
-        nextLastCompletedDate,
+        streak.lastCompletedDate,
 
       defeatedBossIds:
         nextDefeatedBossIds,
@@ -418,15 +457,13 @@ export function useGame() {
       setMessage(
         `Le Boss ${activeBoss.name} est vaincu. Le Royaume reçoit ${activeBoss.rewardGlory} Glory.`
       );
-
       return;
     }
 
     if (dayCompleted) {
       setMessage(
-        "La journée est accomplie. Elle rejoindra les Archives au prochain jour."
+        "La journée est accomplie. Les Missions non applicables n’ont entraîné aucune sanction."
       );
-
       return;
     }
 
@@ -434,6 +471,61 @@ export function useGame() {
       companionMissionMessages[
         missionToComplete.pillar
       ]
+    );
+  }
+
+  function skipMission(missionId: string) {
+    const mission = save.dailyMissions.find(
+      (item) => item.id === missionId
+    );
+
+    if (!mission) return;
+
+    if (
+      save.completedMissionIds.includes(missionId) ||
+      save.skippedMissionIds.includes(missionId)
+    ) {
+      return;
+    }
+
+    const nextSkippedMissionIds = [
+      ...save.skippedMissionIds,
+      missionId,
+    ];
+
+    const nextResolvedCount =
+      save.completedMissionIds.length +
+      nextSkippedMissionIds.length;
+
+    const dayCompleted =
+      nextResolvedCount >= save.dailyMissions.length;
+
+    const streak = calculateStreak(
+      nextResolvedCount
+    );
+
+    updateSave({
+      ...save,
+
+      missionIndex: nextResolvedCount,
+
+      skippedMissionIds:
+        nextSkippedMissionIds,
+
+      currentStreak:
+        streak.currentStreak,
+
+      bestStreak:
+        streak.bestStreak,
+
+      lastCompletedDate:
+        streak.lastCompletedDate,
+    });
+
+    setMessage(
+      dayCompleted
+        ? "La journée est résolue. Certaines Missions ne s’appliquaient simplement pas aujourd’hui."
+        : `La Mission « ${mission.title} » est laissée au repos aujourd’hui.`
     );
   }
 
@@ -521,7 +613,8 @@ export function useGame() {
 
   function simulateNewDay() {
     const today = getTodayDate();
-    const yesterday = getPreviousDate(today);
+    const yesterday =
+      getPreviousDate(today);
 
     const simulatedSave: SaveData = {
       ...save,
@@ -558,6 +651,7 @@ export function useGame() {
     ritualStarted,
 
     accomplirMission,
+    skipMission,
     addDailyMission,
     removeDailyMission,
     restoreDefaultMissions,
