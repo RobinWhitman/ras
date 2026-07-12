@@ -25,71 +25,48 @@ export default function TopBar({
           RAS
         </h1>
 
-        <Link
-          href="/missions"
-          className={linkClass}
-        >
+        <Link href="/missions" className={linkClass}>
           🎯 Missions
         </Link>
 
-        <Link
-          href="/companion"
-          className={linkClass}
-        >
+        <Link href="/companion" className={linkClass}>
           🐈‍⬛ LOKI
         </Link>
 
-        <Link
-          href="/hero"
-          className={linkClass}
-        >
+        <Link href="/hero" className={linkClass}>
           🧍 Héros
         </Link>
 
-        <Link
-          href="/chapter"
-          className={linkClass}
-        >
+        <Link href="/chapter" className={linkClass}>
           📕 Chapitre
         </Link>
 
-        <Link
-          href="/projects"
-          className={linkClass}
-        >
+        <Link href="/projects" className={linkClass}>
           📜 Projets
         </Link>
 
-        <Link
-          href="/kingdom"
-          className={linkClass}
-        >
+        <Link href="/kingdom" className={linkClass}>
           🏰 Royaume
         </Link>
 
-        <Link
-          href="/achievements"
-          className={linkClass}
-        >
+        <Link href="/achievements" className={linkClass}>
           🏆 Succès
         </Link>
 
-        <Link
-          href="/journal"
-          className={linkClass}
-        >
+        <Link href="/report" className={linkClass}>
+          📊 Rapport
+        </Link>
+
+        <Link href="/journal" className={linkClass}>
           📖 Journal
         </Link>
 
-        <Link
-          href="/settings"
-          className={linkClass}
-        >
+        <Link href="/settings" className={linkClass}>
           ⚙️
         </Link>
       </div>
 
-      <div className="flex items-center gap-6 text-right">
+      <div className="flex items-center gap-5 text-right">
         <div>
           <p className="font-bold">
             🔥 {currentStreak}
