@@ -129,25 +129,19 @@ function createDefaultSave(): SaveData {
   return {
     currentDate: getTodayDate(),
     missionIndex: 0,
-
     xp: 0,
     glory: 0,
     bossHp: activeBoss.maxHp,
-
     dailyGlory: 0,
     completedMissions: [],
     completedMissionIds: [],
     skippedMissionIds: [],
     dailyMissions: cloneDefaultMissions(),
-
     dayHistory: [],
-
     pillarProgress: createEmptyPillarProgress(),
-
     currentStreak: 0,
     bestStreak: 0,
     lastCompletedDate: null,
-
     missionConfigVersion: CONFIG_VERSION,
     defeatedBossIds: [],
   };
@@ -198,35 +192,24 @@ export function useGame() {
     const storedSave: SaveData = {
       ...defaultSave,
       ...parsedSave,
-
       completedMissions: parsedSave.completedMissions ?? [],
-
       completedMissionIds,
-
       skippedMissionIds: parsedSave.skippedMissionIds ?? [],
-
       dailyMissions: migrateMissions(storedMissions, storedVersion),
-
       dayHistory: (parsedSave.dayHistory ?? []).map((day) => ({
         ...day,
         skippedMissionCount: day.skippedMissionCount ?? 0,
         plannedMissionCount:
           day.plannedMissionCount ?? day.completedMissions.length,
       })),
-
       pillarProgress: {
         ...createEmptyPillarProgress(),
         ...(parsedSave.pillarProgress ?? {}),
       },
-
       currentStreak: parsedSave.currentStreak ?? 0,
-
       bestStreak: parsedSave.bestStreak ?? 0,
-
       lastCompletedDate: parsedSave.lastCompletedDate ?? null,
-
       defeatedBossIds: parsedSave.defeatedBossIds ?? [],
-
       missionConfigVersion: CONFIG_VERSION,
     };
 
@@ -254,17 +237,13 @@ export function useGame() {
 
       const newDaySave: SaveData = {
         ...storedSave,
-
         currentDate: today,
         missionIndex: 0,
-
         dailyGlory: 0,
         completedMissions: [],
         completedMissionIds: [],
         skippedMissionIds: [],
-
         dayHistory: nextHistory,
-
         currentStreak: streakStillAlive
           ? storedSave.currentStreak
           : 0,
@@ -272,7 +251,6 @@ export function useGame() {
 
       setSave(newDaySave);
       localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
-
       setMessage(
         "Une nouvelle journée commence. La précédente rejoint les Archives."
       );
@@ -363,7 +341,6 @@ export function useGame() {
 
     const updatedPillarProgress: PillarProgress = {
       ...save.pillarProgress,
-
       [missionToComplete.pillar]:
         save.pillarProgress[missionToComplete.pillar] +
         missionToComplete.glory,
@@ -403,32 +380,20 @@ export function useGame() {
 
     updateSave({
       ...save,
-
       missionIndex: nextResolvedCount,
-
       xp: save.xp + missionToComplete.xp,
-
       glory: save.glory + missionToComplete.glory + bossReward,
-
       dailyGlory: save.dailyGlory + missionToComplete.glory,
-
       bossHp: nextBossHp,
-
       completedMissions: [
         ...save.completedMissions,
         completedMission,
       ],
-
       completedMissionIds: nextCompletedMissionIds,
-
       pillarProgress: updatedPillarProgress,
-
       currentStreak: streak.currentStreak,
-
       bestStreak: streak.bestStreak,
-
       lastCompletedDate: streak.lastCompletedDate,
-
       defeatedBossIds: nextDefeatedBossIds,
     });
 
@@ -436,4 +401,186 @@ export function useGame() {
       setMessage(
         `Le Boss ${activeBoss.name} est vaincu. Le Royaume reçoit ${activeBoss.rewardGlory} Glory.`
       );
-   
+      return;
+    }
+
+    if (dayCompleted) {
+      setMessage(
+        "La journée est accomplie. Les Missions non applicables n’ont entraîné aucune sanction."
+      );
+      return;
+    }
+
+    setMessage(companionMissionMessages[missionToComplete.pillar]);
+  }
+
+  function skipMission(missionId: string) {
+    const mission = activeMissions.find((item) => item.id === missionId);
+
+    if (!mission) return;
+
+    if (
+      save.completedMissionIds.includes(missionId) ||
+      save.skippedMissionIds.includes(missionId)
+    ) {
+      return;
+    }
+
+    const nextSkippedMissionIds = [
+      ...save.skippedMissionIds,
+      missionId,
+    ];
+
+    const nextResolvedCount =
+      save.completedMissionIds.length + nextSkippedMissionIds.length;
+
+    const dayCompleted =
+      nextResolvedCount >= activeMissions.length;
+
+    const streak = calculateStreak(
+      nextResolvedCount,
+      activeMissions.length
+    );
+
+    updateSave({
+      ...save,
+      missionIndex: nextResolvedCount,
+      skippedMissionIds: nextSkippedMissionIds,
+      currentStreak: streak.currentStreak,
+      bestStreak: streak.bestStreak,
+      lastCompletedDate: streak.lastCompletedDate,
+    });
+
+    setMessage(
+      dayCompleted
+        ? "La journée est résolue. Certaines Missions ne s’appliquaient simplement pas aujourd’hui."
+        : `La Mission « ${mission.title} » est laissée au repos aujourd’hui.`
+    );
+  }
+
+  function addDailyMission(
+    title: string,
+    pillar: Pillar,
+    ritualId: string,
+    daysOfWeek: WeekDay[] = allWeekDays
+  ) {
+    if (ritualStarted || !title.trim() || daysOfWeek.length === 0) {
+      return;
+    }
+
+    const newMission: Mission = {
+      id: `mission-${Date.now()}`,
+      chapterId: "chapter-ras",
+      bossId: "boss-chaos",
+      projectId: "project-ras-v1",
+      ritualId,
+      title: title.trim(),
+      pillar,
+      xp: 10,
+      glory: 5,
+      damage: 5,
+      daysOfWeek,
+    };
+
+    const ritualOrder = [
+      "ritual-aube",
+      "ritual-jour",
+      "ritual-crepuscule",
+    ];
+
+    const updatedMissions = [...save.dailyMissions, newMission].sort(
+      (a, b) =>
+        ritualOrder.indexOf(a.ritualId) -
+        ritualOrder.indexOf(b.ritualId)
+    );
+
+    updateSave({
+      ...save,
+      dailyMissions: updatedMissions,
+    });
+  }
+
+  function updateMissionDays(
+    missionId: string,
+    daysOfWeek: WeekDay[]
+  ) {
+    if (ritualStarted || daysOfWeek.length === 0) return;
+
+    updateSave({
+      ...save,
+      dailyMissions: save.dailyMissions.map((mission) =>
+        mission.id === missionId
+          ? {
+              ...mission,
+              daysOfWeek,
+            }
+          : mission
+      ),
+    });
+  }
+
+  function removeDailyMission(missionId: string) {
+    if (ritualStarted) return;
+
+    updateSave({
+      ...save,
+      dailyMissions: save.dailyMissions.filter(
+        (mission) => mission.id !== missionId
+      ),
+    });
+  }
+
+  function restoreDefaultMissions() {
+    if (ritualStarted) return;
+
+    updateSave({
+      ...save,
+      dailyMissions: cloneDefaultMissions(),
+      missionConfigVersion: CONFIG_VERSION,
+    });
+  }
+
+  function resetGame() {
+    const freshSave = createDefaultSave();
+
+    localStorage.removeItem(SAVE_KEY);
+    setSave(freshSave);
+    setMessage(companion.start);
+  }
+
+  function simulateNewDay() {
+    const today = getTodayDate();
+    const yesterday = getPreviousDate(today);
+
+    const simulatedSave: SaveData = {
+      ...save,
+      currentDate: yesterday,
+      lastCompletedDate: save.currentStreak > 0 ? yesterday : null,
+    };
+
+    localStorage.setItem(SAVE_KEY, JSON.stringify(simulatedSave));
+    window.location.reload();
+  }
+
+  const pillarScores = pillars.map((pillar) => ({
+    pillar,
+    score: save.pillarProgress[pillar],
+  }));
+
+  return {
+    save,
+    activeMissions,
+    currentMission,
+    message,
+    pillarScores,
+    ritualStarted,
+    accomplirMission,
+    skipMission,
+    addDailyMission,
+    updateMissionDays,
+    removeDailyMission,
+    restoreDefaultMissions,
+    resetGame,
+    simulateNewDay,
+  };
+}
