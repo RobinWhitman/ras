@@ -14,7 +14,7 @@ export default function MissionsPage() {
     accomplirMission,
     skipMission,
     addDailyMission,
-    updateMissionDays,
+    updateDailyMission,
     removeDailyMission,
     restoreDefaultMissions,
   } = useGame();
@@ -205,14 +205,14 @@ export default function MissionsPage() {
 
           <p className="mb-5 text-zinc-400">
             Modifie ici les Missions de l’Aube, du Jour et du
-            Crépuscule, ainsi que leurs jours d’apparition.
+            Crépuscule : titre, Pilier, Rituel, jours, XP, Glory et dégâts.
           </p>
 
           <MissionManager
             missions={save.dailyMissions}
             ritualStarted={ritualStarted}
             onAddMission={addDailyMission}
-            onUpdateMissionDays={updateMissionDays}
+            onUpdateMission={updateDailyMission}
             onRemoveMission={removeDailyMission}
             onRestoreDefaults={restoreDefaultMissions}
           />

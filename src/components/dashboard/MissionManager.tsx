@@ -11,12 +11,12 @@ type MissionManagerProps = {
     title: string,
     pillar: Pillar,
     ritualId: string,
-    daysOfWeek: WeekDay[]
+    daysOfWeek: WeekDay[],
+    xp: number,
+    glory: number,
+    damage: number
   ) => void;
-  onUpdateMissionDays: (
-    missionId: string,
-    daysOfWeek: WeekDay[]
-  ) => void;
+  onUpdateMission: (mission: Mission) => void;
   onRemoveMission: (missionId: string) => void;
   onRestoreDefaults: () => void;
 };
@@ -53,9 +53,7 @@ function toggleWeekDay(daysOfWeek: WeekDay[], day: WeekDay) {
 }
 
 function formatDays(daysOfWeek: WeekDay[]) {
-  if (daysOfWeek.length === 7) {
-    return "Tous les jours";
-  }
+  if (daysOfWeek.length === 7) return "Tous les jours";
 
   return weekDays
     .filter((day) => daysOfWeek.includes(day.value))
@@ -63,26 +61,55 @@ function formatDays(daysOfWeek: WeekDay[]) {
     .join(", ");
 }
 
+function clampNumber(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.round(value));
+}
+
 export default function MissionManager({
   missions,
   ritualStarted,
   onAddMission,
-  onUpdateMissionDays,
+  onUpdateMission,
   onRemoveMission,
   onRestoreDefaults,
 }: MissionManagerProps) {
   const [title, setTitle] = useState("");
   const [pillar, setPillar] = useState<Pillar>("Discipline");
   const [ritualId, setRitualId] = useState("ritual-aube");
-  const [daysOfWeek, setDaysOfWeek] =
-    useState<WeekDay[]>(allWeekDays);
+  const [daysOfWeek, setDaysOfWeek] = useState<WeekDay[]>(allWeekDays);
+  const [xp, setXp] = useState(10);
+  const [glory, setGlory] = useState(5);
+  const [damage, setDamage] = useState(5);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    onAddMission(title, pillar, ritualId, daysOfWeek);
+    onAddMission(
+      title,
+      pillar,
+      ritualId,
+      daysOfWeek,
+      clampNumber(xp),
+      clampNumber(glory),
+      clampNumber(damage)
+    );
+
     setTitle("");
     setDaysOfWeek(allWeekDays);
+    setXp(10);
+    setGlory(5);
+    setDamage(5);
+  }
+
+  function updateMission(
+    mission: Mission,
+    updates: Partial<Mission>
+  ) {
+    onUpdateMission({
+      ...mission,
+      ...updates,
+    });
   }
 
   return (
@@ -116,67 +143,153 @@ export default function MissionManager({
                       Aucune mission.
                     </p>
                   ) : (
-                    <ul className="space-y-2">
-                      {ritualMissions.map((mission, index) => (
+                    <ul className="space-y-3">
+                      {ritualMissions.map((mission) => (
                         <li
                           key={mission.id}
                           className="space-y-3 rounded-lg border border-zinc-800 p-3"
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold">
-                                {index + 1}. {mission.title}
-                              </p>
+                          <input
+                            value={mission.title}
+                            onChange={(event) =>
+                              updateMission(mission, {
+                                title: event.target.value,
+                              })
+                            }
+                            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
+                          />
 
-                              <p className="text-xs text-zinc-500">
-                                {mission.pillar} · +{mission.xp} XP ·{" "}
-                                {formatDays(mission.daysOfWeek)}
-                              </p>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onRemoveMission(mission.id)
+                          <div className="grid gap-2 md:grid-cols-2">
+                            <select
+                              value={mission.pillar}
+                              onChange={(event) =>
+                                updateMission(mission, {
+                                  pillar: event.target.value as Pillar,
+                                })
                               }
-                              className="text-xs font-bold text-red-400"
+                              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white"
                             >
-                              Supprimer
-                            </button>
+                              {pillars.map((item) => (
+                                <option key={item} value={item}>
+                                  {item}
+                                </option>
+                              ))}
+                            </select>
+
+                            <select
+                              value={mission.ritualId}
+                              onChange={(event) =>
+                                updateMission(mission, {
+                                  ritualId: event.target.value,
+                                })
+                              }
+                              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white"
+                            >
+                              {rituals.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                  {item.title}
+                                </option>
+                              ))}
+                            </select>
                           </div>
 
-                          <div className="grid grid-cols-7 gap-1">
-                            {weekDays.map((day) => {
-                              const selected =
-                                mission.daysOfWeek.includes(day.value);
+                          <div className="grid grid-cols-3 gap-2">
+                            <label className="text-xs text-zinc-500">
+                              XP
+                              <input
+                                type="number"
+                                min={0}
+                                value={mission.xp}
+                                onChange={(event) =>
+                                  updateMission(mission, {
+                                    xp: clampNumber(
+                                      Number(event.target.value)
+                                    ),
+                                  })
+                                }
+                                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
+                              />
+                            </label>
 
-                              const nextDays = toggleWeekDay(
-                                mission.daysOfWeek,
-                                day.value
-                              );
+                            <label className="text-xs text-zinc-500">
+                              Glory
+                              <input
+                                type="number"
+                                min={0}
+                                value={mission.glory}
+                                onChange={(event) =>
+                                  updateMission(mission, {
+                                    glory: clampNumber(
+                                      Number(event.target.value)
+                                    ),
+                                  })
+                                }
+                                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
+                              />
+                            </label>
 
-                              return (
-                                <button
-                                  key={day.value}
-                                  type="button"
-                                  disabled={nextDays.length === 0}
-                                  onClick={() =>
-                                    onUpdateMissionDays(
-                                      mission.id,
-                                      nextDays
-                                    )
-                                  }
-                                  className={
-                                    selected
-                                      ? "rounded-md border border-yellow-500 bg-yellow-500 px-1 py-1 text-[11px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-40"
-                                      : "rounded-md border border-zinc-700 px-1 py-1 text-[11px] font-bold text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
-                                  }
-                                >
-                                  {day.label}
-                                </button>
-                              );
-                            })}
+                            <label className="text-xs text-zinc-500">
+                              Dégâts
+                              <input
+                                type="number"
+                                min={0}
+                                value={mission.damage}
+                                onChange={(event) =>
+                                  updateMission(mission, {
+                                    damage: clampNumber(
+                                      Number(event.target.value)
+                                    ),
+                                  })
+                                }
+                                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
+                              />
+                            </label>
                           </div>
+
+                          <div>
+                            <p className="mb-2 text-xs text-zinc-500">
+                              {formatDays(mission.daysOfWeek)}
+                            </p>
+
+                            <div className="grid grid-cols-7 gap-1">
+                              {weekDays.map((day) => {
+                                const selected =
+                                  mission.daysOfWeek.includes(day.value);
+                                const nextDays = toggleWeekDay(
+                                  mission.daysOfWeek,
+                                  day.value
+                                );
+
+                                return (
+                                  <button
+                                    key={day.value}
+                                    type="button"
+                                    disabled={nextDays.length === 0}
+                                    onClick={() =>
+                                      updateMission(mission, {
+                                        daysOfWeek: nextDays,
+                                      })
+                                    }
+                                    className={
+                                      selected
+                                        ? "rounded-md border border-yellow-500 bg-yellow-500 px-1 py-1 text-[11px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-40"
+                                        : "rounded-md border border-zinc-700 px-1 py-1 text-[11px] font-bold text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+                                    }
+                                  >
+                                    {day.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => onRemoveMission(mission.id)}
+                            className="w-full rounded-lg border border-red-900 px-3 py-2 text-xs font-bold text-red-400"
+                          >
+                            Supprimer
+                          </button>
                         </li>
                       ))}
                     </ul>
@@ -223,6 +336,47 @@ export default function MissionManager({
               ))}
             </select>
 
+            <div className="grid grid-cols-3 gap-2 lg:col-span-3">
+              <label className="text-xs text-zinc-500">
+                XP
+                <input
+                  type="number"
+                  min={0}
+                  value={xp}
+                  onChange={(event) =>
+                    setXp(clampNumber(Number(event.target.value)))
+                  }
+                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+                />
+              </label>
+
+              <label className="text-xs text-zinc-500">
+                Glory
+                <input
+                  type="number"
+                  min={0}
+                  value={glory}
+                  onChange={(event) =>
+                    setGlory(clampNumber(Number(event.target.value)))
+                  }
+                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+                />
+              </label>
+
+              <label className="text-xs text-zinc-500">
+                Dégâts
+                <input
+                  type="number"
+                  min={0}
+                  value={damage}
+                  onChange={(event) =>
+                    setDamage(clampNumber(Number(event.target.value)))
+                  }
+                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+                />
+              </label>
+            </div>
+
             <div className="lg:col-span-3">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">
                 Jours planifiés
@@ -231,10 +385,7 @@ export default function MissionManager({
               <div className="grid grid-cols-7 gap-2">
                 {weekDays.map((day) => {
                   const selected = daysOfWeek.includes(day.value);
-                  const nextDays = toggleWeekDay(
-                    daysOfWeek,
-                    day.value
-                  );
+                  const nextDays = toggleWeekDay(daysOfWeek, day.value);
 
                   return (
                     <button
