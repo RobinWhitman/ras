@@ -41,10 +41,7 @@ const weekDays: { value: WeekDay; label: string }[] = [
   { value: 0, label: "Dim" },
 ];
 
-function toggleWeekDay(
-  daysOfWeek: WeekDay[],
-  day: WeekDay
-) {
+function toggleWeekDay(daysOfWeek: WeekDay[], day: WeekDay) {
   if (daysOfWeek.includes(day)) {
     return daysOfWeek.filter((item) => item !== day);
   }
@@ -80,9 +77,7 @@ export default function MissionManager({
   const [daysOfWeek, setDaysOfWeek] =
     useState<WeekDay[]>(allWeekDays);
 
-  function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     onAddMission(title, pillar, ritualId, daysOfWeek);
@@ -154,6 +149,7 @@ export default function MissionManager({
                             {weekDays.map((day) => {
                               const selected =
                                 mission.daysOfWeek.includes(day.value);
+
                               const nextDays = toggleWeekDay(
                                 mission.daysOfWeek,
                                 day.value
@@ -170,10 +166,112 @@ export default function MissionManager({
                                       nextDays
                                     )
                                   }
-                                  className={`rounded-md border px-1 py-1 text-[11px] font-bold ${
+                                  className={
                                     selected
-                                      ? "border-yellow-500 bg-yellow-500 text-black"
-                                      : "border-zinc-700 text-zinc-400"
-                                  } disabled:cursor-not-allowed disabled:opacity-40`}
+                                      ? "rounded-md border border-yellow-500 bg-yellow-500 px-1 py-1 text-[11px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-40"
+                                      : "rounded-md border border-zinc-700 px-1 py-1 text-[11px] font-bold text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+                                  }
                                 >
-                                  {day
+                                  {day.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="grid gap-3 rounded-xl border border-zinc-800 p-4 lg:grid-cols-[1fr_170px_190px]"
+          >
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Nouvelle mission"
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+            />
+
+            <select
+              value={pillar}
+              onChange={(event) =>
+                setPillar(event.target.value as Pillar)
+              }
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+            >
+              {pillars.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={ritualId}
+              onChange={(event) => setRitualId(event.target.value)}
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
+            >
+              {rituals.map((ritual) => (
+                <option key={ritual.id} value={ritual.id}>
+                  {ritual.title}
+                </option>
+              ))}
+            </select>
+
+            <div className="lg:col-span-3">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">
+                Jours planifiés
+              </p>
+
+              <div className="grid grid-cols-7 gap-2">
+                {weekDays.map((day) => {
+                  const selected = daysOfWeek.includes(day.value);
+                  const nextDays = toggleWeekDay(
+                    daysOfWeek,
+                    day.value
+                  );
+
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      disabled={nextDays.length === 0}
+                      onClick={() => setDaysOfWeek(nextDays)}
+                      className={
+                        selected
+                          ? "rounded-lg border border-yellow-500 bg-yellow-500 px-2 py-2 text-xs font-bold text-black disabled:cursor-not-allowed disabled:opacity-40"
+                          : "rounded-lg border border-zinc-700 px-2 py-2 text-xs font-bold text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+                      }
+                    >
+                      {day.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black lg:col-span-3"
+            >
+              Ajouter
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={onRestoreDefaults}
+            className="text-sm text-zinc-400 underline"
+          >
+            Restaurer toutes les missions par défaut
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
