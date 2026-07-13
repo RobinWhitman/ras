@@ -7,7 +7,10 @@ import type {
   Pillar,
   Project,
   Ritual,
+  WeekDay,
 } from "@/types/game";
+
+export const allWeekDays: WeekDay[] = [0, 1, 2, 3, 4, 5, 6];
 
 export const chapters: Chapter[] = [
   {
@@ -97,6 +100,7 @@ export const missions: Mission[] = [
     xp: 10,
     glory: 5,
     damage: 5,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-eau",
@@ -109,6 +113,7 @@ export const missions: Mission[] = [
     xp: 10,
     glory: 5,
     damage: 5,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-priere",
@@ -121,6 +126,7 @@ export const missions: Mission[] = [
     xp: 15,
     glory: 8,
     damage: 8,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-plan",
@@ -133,6 +139,7 @@ export const missions: Mission[] = [
     xp: 15,
     glory: 8,
     damage: 8,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-action-prioritaire",
@@ -145,6 +152,7 @@ export const missions: Mission[] = [
     xp: 30,
     glory: 15,
     damage: 15,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-seance",
@@ -157,6 +165,7 @@ export const missions: Mission[] = [
     xp: 30,
     glory: 15,
     damage: 15,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-preparer-demain",
@@ -169,6 +178,7 @@ export const missions: Mission[] = [
     xp: 15,
     glory: 8,
     damage: 8,
+    daysOfWeek: allWeekDays,
   },
   {
     id: "mission-gratitude",
@@ -181,6 +191,7 @@ export const missions: Mission[] = [
     xp: 15,
     glory: 8,
     damage: 8,
+    daysOfWeek: allWeekDays,
   },
 ];
 

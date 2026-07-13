@@ -9,6 +9,8 @@ export type Pillar =
 
 export type RitualTime = "Aube" | "Jour" | "Crépuscule";
 
+export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 export interface Chapter {
   id: string;
   title: string;
@@ -57,6 +59,7 @@ export interface Mission {
   xp: number;
   glory: number;
   damage: number;
+  daysOfWeek: WeekDay[];
 }
 
 export interface CompletedMission {

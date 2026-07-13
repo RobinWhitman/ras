@@ -1,7 +1,9 @@
 import type {
   DayArchive,
+  Mission,
   Pillar,
   SaveData,
+  WeekDay,
 } from "@/types/game";
 
 export type WeeklyPillarScore = {
@@ -65,6 +67,21 @@ function findArchive(
   return history.find((day) => day.date === date);
 }
 
+function getWeekDay(date: string): WeekDay {
+  return new Date(`${date}T12:00:00`).getDay() as WeekDay;
+}
+
+function getPlannedMissionCount(
+  missions: Mission[],
+  date: string
+) {
+  const weekDay = getWeekDay(date);
+
+  return missions.filter((mission) =>
+    mission.daysOfWeek.includes(weekDay)
+  ).length;
+}
+
 export function createWeeklyReport(
   save: SaveData
 ): WeeklyReport {
@@ -97,6 +114,17 @@ export function createWeeklyReport(
       ? save.dailyGlory
       : archive?.gloryGained ?? 0;
 
+    const plannedMissionCount = isToday
+      ? getPlannedMissionCount(save.dailyMissions, date)
+      : archive?.plannedMissionCount ?? missions.length;
+
+    const skippedMissionCount = isToday
+      ? save.skippedMissionIds.length
+      : archive?.skippedMissionCount ?? 0;
+
+    const resolvedMissionCount =
+      missions.length + skippedMissionCount;
+
     missions.forEach((mission) => {
       pillarMap[mission.pillar] += mission.glory;
     });
@@ -107,8 +135,8 @@ export function createWeeklyReport(
       xp,
       glory,
       completed:
-        missions.length > 0 &&
-        missions.length >= save.dailyMissions.length,
+        plannedMissionCount > 0 &&
+        resolvedMissionCount >= plannedMissionCount,
     };
   });
 
