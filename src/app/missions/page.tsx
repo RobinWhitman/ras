@@ -150,7 +150,74 @@ export default function MissionsPage() {
                               </p>
                             </div>
 
-                            {recommended &&
-                              !completed &&
-                              !skipped && (
-                                <span className="rounded-full border border-yellow-500 px-2 py-1 text-[10px] font-bold text-yellow-
+                            {recommended && !completed && !skipped && (
+                              <span className="rounded-full border border-yellow-500 px-2 py-1 text-[10px] font-bold text-yellow-400">
+                                RECOMMANDÉE
+                              </span>
+                            )}
+                          </div>
+
+                          {completed ? (
+                            <div className="rounded-lg bg-green-950/30 px-4 py-2 text-center font-bold text-green-400">
+                              Mission accomplie
+                            </div>
+                          ) : skipped ? (
+                            <div className="rounded-lg bg-zinc-800 px-4 py-2 text-center font-bold text-zinc-400">
+                              Au repos aujourd’hui
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  accomplirMission(mission.id)
+                                }
+                                className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black"
+                              >
+                                Accomplir
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  skipMission(mission.id)
+                                }
+                                className="rounded-lg border border-zinc-700 px-4 py-2 font-bold text-zinc-300"
+                              >
+                                🌙 Pas aujourd’hui
+                              </button>
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        <section className="rounded-xl border border-zinc-800 p-5">
+          <h2 className="mb-2 text-2xl font-bold">
+            ⚙️ Configurer les Missions
+          </h2>
+
+          <p className="mb-5 text-zinc-400">
+            Modifie ici les Missions de l’Aube, du Jour et du
+            Crépuscule, ainsi que leurs jours d’apparition.
+          </p>
+
+          <MissionManager
+            missions={save.dailyMissions}
+            ritualStarted={ritualStarted}
+            onAddMission={addDailyMission}
+            onUpdateMissionDays={updateMissionDays}
+            onRemoveMission={removeDailyMission}
+            onRestoreDefaults={restoreDefaultMissions}
+          />
+        </section>
+      </div>
+    </main>
+  );
+}
