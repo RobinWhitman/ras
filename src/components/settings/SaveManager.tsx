@@ -1,8 +1,58 @@
 "use client";
 
 import { ChangeEvent, useRef, useState } from "react";
+import { normalizeSaveData } from "@/hooks/useGame";
 
 const SAVE_KEY = "ras-save-v9";
+const EXPORT_VERSION = 2;
+
+type ExportFile = {
+  application: "RAS";
+  exportVersion: number;
+  exportedAt: string;
+  save: unknown;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+}
+
+function extractSaveFromFile(parsedFile: unknown) {
+  if (
+    isObject(parsedFile) &&
+    parsedFile.application === "RAS" &&
+    "save" in parsedFile
+  ) {
+    return parsedFile.save;
+  }
+
+  return parsedFile;
+}
+
+function isProbablyRasSave(value: unknown) {
+  if (!isObject(value)) return false;
+
+  const hasCoreProgress =
+    typeof value.xp === "number" ||
+    typeof value.glory === "number" ||
+    typeof value.bossHp === "number";
+
+  const hasMissionData =
+    Array.isArray(value.dailyMissions) ||
+    Array.isArray(value.completedMissions) ||
+    Array.isArray(value.completedMissionIds);
+
+  const hasSaveShape =
+    typeof value.currentDate === "string" ||
+    typeof value.missionConfigVersion === "number" ||
+    typeof value.schemaVersion === "number";
+
+  return hasCoreProgress || hasMissionData || hasSaveShape;
+}
 
 export default function SaveManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,12 +73,13 @@ export default function SaveManager() {
 
     try {
       const parsedSave = JSON.parse(storedSave);
+      const normalizedSave = normalizeSaveData(parsedSave);
 
-      const exportData = {
+      const exportData: ExportFile = {
         application: "RAS",
-        version: 1,
+        exportVersion: EXPORT_VERSION,
         exportedAt: new Date().toISOString(),
-        save: parsedSave,
+        save: normalizedSave,
       };
 
       const fileContent = JSON.stringify(exportData, null, 2);
@@ -63,28 +114,6 @@ export default function SaveManager() {
     fileInputRef.current?.click();
   }
 
-  function isValidSave(value: unknown): value is Record<string, unknown> {
-    if (
-      typeof value !== "object" ||
-      value === null ||
-      Array.isArray(value)
-    ) {
-      return false;
-    }
-
-    const save = value as Record<string, unknown>;
-
-    return (
-      typeof save.xp === "number" &&
-      typeof save.glory === "number" &&
-      typeof save.bossHp === "number" &&
-      Array.isArray(save.dailyMissions) &&
-      Array.isArray(save.completedMissionIds) &&
-      typeof save.pillarProgress === "object" &&
-      save.pillarProgress !== null
-    );
-  }
-
   async function importSave(
     event: ChangeEvent<HTMLInputElement>
   ) {
@@ -98,15 +127,13 @@ export default function SaveManager() {
     try {
       const fileContent = await file.text();
       const parsedFile = JSON.parse(fileContent);
+      const importedSave = extractSaveFromFile(parsedFile);
 
-      const importedSave =
-        parsedFile?.application === "RAS" && parsedFile?.save
-          ? parsedFile.save
-          : parsedFile;
-
-      if (!isValidSave(importedSave)) {
+      if (!isProbablyRasSave(importedSave)) {
         throw new Error("Invalid save");
       }
+
+      const normalizedSave = normalizeSaveData(importedSave);
 
       const confirmed = window.confirm(
         "Importer cette sauvegarde remplacera toute la progression actuellement enregistrée dans RAS. Continuer ?"
@@ -117,15 +144,12 @@ export default function SaveManager() {
         return;
       }
 
-      localStorage.setItem(
-        SAVE_KEY,
-        JSON.stringify(importedSave)
-      );
+      localStorage.setItem(SAVE_KEY, JSON.stringify(normalizedSave));
 
       window.location.reload();
     } catch {
       setError(
-        "Ce fichier n’est pas une sauvegarde RAS valide."
+        "Ce fichier n’est pas une sauvegarde RAS valide ou lisible."
       );
     } finally {
       event.target.value = "";
@@ -146,7 +170,7 @@ export default function SaveManager() {
 
           <p className="mt-2 text-sm text-zinc-400">
             Télécharge toute ta progression RAS dans un fichier
-            conservable sur ton ordinateur.
+            versionné et réimportable.
           </p>
         </button>
 
@@ -160,7 +184,8 @@ export default function SaveManager() {
           </p>
 
           <p className="mt-2 text-sm text-zinc-400">
-            Restaure une progression précédemment exportée.
+            Restaure une progression exportée. Les anciennes
+            sauvegardes sont normalisées automatiquement.
           </p>
         </button>
       </div>

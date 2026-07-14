@@ -91,6 +91,7 @@ export interface Companion {
 export type PillarProgress = Record<Pillar, number>;
 
 export interface SaveData {
+  schemaVersion: number;
   currentDate: string;
   missionIndex: number;
 

@@ -19,6 +19,7 @@ import type {
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v9";
+const SAVE_SCHEMA_VERSION = 2;
 const CONFIG_VERSION = 4;
 const activeBoss = bosses[0];
 
@@ -30,6 +31,12 @@ const pillars: Pillar[] = [
   "Leadership",
   "Foi",
   "Relations",
+];
+
+const ritualOrder = [
+  "ritual-aube",
+  "ritual-jour",
+  "ritual-crepuscule",
 ];
 
 function getTodayDate() {
@@ -46,9 +53,34 @@ function getWeekDay(date: string): WeekDay {
   return new Date(`${date}T12:00:00`).getDay() as WeekDay;
 }
 
-export function getMissionsForDate(missions: Mission[], date: string) {
+export function getMissionsForDate(
+  missions: Mission[],
+  date: string
+) {
   const weekDay = getWeekDay(date);
-  return missions.filter((mission) => mission.daysOfWeek.includes(weekDay));
+
+  return missions.filter((mission) =>
+    mission.daysOfWeek.includes(weekDay)
+  );
+}
+
+function isPillar(value: unknown): value is Pillar {
+  return pillars.includes(value as Pillar);
+}
+
+function isWeekDay(value: unknown): value is WeekDay {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 6
+  );
+}
+
+function cleanNumber(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.round(value))
+    : fallback;
 }
 
 function createEmptyPillarProgress(): PillarProgress {
@@ -63,28 +95,84 @@ function createEmptyPillarProgress(): PillarProgress {
   };
 }
 
-function normalizeMission(mission: Mission): Mission {
+function normalizeCompletedMission(
+  mission: Partial<CompletedMission>
+): CompletedMission {
   return {
-    ...mission,
-    title: mission.title?.trim() || "Mission sans titre",
-    xp: Number.isFinite(mission.xp) ? Math.max(0, mission.xp) : 10,
-    glory: Number.isFinite(mission.glory) ? Math.max(0, mission.glory) : 5,
-    damage: Number.isFinite(mission.damage) ? Math.max(0, mission.damage) : 5,
-    daysOfWeek: mission.daysOfWeek?.length > 0 ? mission.daysOfWeek : allWeekDays,
+    id: typeof mission.id === "string" ? mission.id : `completed-${Date.now()}`,
+    title:
+      typeof mission.title === "string" && mission.title.trim()
+        ? mission.title.trim()
+        : "Mission accomplie",
+    pillar: isPillar(mission.pillar) ? mission.pillar : "Discipline",
+    xp: cleanNumber(mission.xp, 0),
+    glory: cleanNumber(mission.glory, 0),
+  };
+}
+
+function normalizeMission(
+  mission: Partial<Mission>,
+  index = 0
+): Mission {
+  const days =
+    Array.isArray(mission.daysOfWeek) &&
+    mission.daysOfWeek.filter(isWeekDay).length > 0
+      ? mission.daysOfWeek.filter(isWeekDay)
+      : allWeekDays;
+
+  return {
+    id:
+      typeof mission.id === "string" && mission.id.trim()
+        ? mission.id
+        : `mission-${Date.now()}-${index}`,
+    chapterId:
+      typeof mission.chapterId === "string"
+        ? mission.chapterId
+        : "chapter-ras",
+    bossId:
+      typeof mission.bossId === "string"
+        ? mission.bossId
+        : "boss-chaos",
+    projectId:
+      typeof mission.projectId === "string"
+        ? mission.projectId
+        : "project-ras-v1",
+    ritualId:
+      typeof mission.ritualId === "string"
+        ? mission.ritualId
+        : "ritual-aube",
+    title:
+      typeof mission.title === "string" && mission.title.trim()
+        ? mission.title.trim()
+        : "Mission sans titre",
+    pillar: isPillar(mission.pillar) ? mission.pillar : "Discipline",
+    xp: cleanNumber(mission.xp, 10),
+    glory: cleanNumber(mission.glory, 5),
+    damage: cleanNumber(mission.damage, 5),
+    daysOfWeek: days,
   };
 }
 
 function cloneDefaultMissions(): Mission[] {
-  return defaultMissions.map((mission) => normalizeMission({ ...mission }));
+  return defaultMissions.map((mission, index) =>
+    normalizeMission({ ...mission }, index)
+  );
 }
 
-function migrateMissions(existingMissions: Mission[], version: number): Mission[] {
-  const migratedMissions = existingMissions.map((mission) =>
-    normalizeMission(mission)
+function migrateMissions(
+  existingMissions: Partial<Mission>[],
+  version: number
+): Mission[] {
+  const migratedMissions = existingMissions.map((mission, index) =>
+    normalizeMission(mission, index)
   );
 
   if (version >= 2) {
-    return migratedMissions;
+    return migratedMissions.sort(
+      (a, b) =>
+        ritualOrder.indexOf(a.ritualId) -
+        ritualOrder.indexOf(b.ritualId)
+    );
   }
 
   const hasDayMissions = migratedMissions.some(
@@ -99,7 +187,7 @@ function migrateMissions(existingMissions: Mission[], version: number): Mission[
     migratedMissions.push(
       ...defaultMissions
         .filter((mission) => mission.ritualId === "ritual-jour")
-        .map((mission) => normalizeMission({ ...mission }))
+        .map((mission, index) => normalizeMission({ ...mission }, index))
     );
   }
 
@@ -107,15 +195,71 @@ function migrateMissions(existingMissions: Mission[], version: number): Mission[
     migratedMissions.push(
       ...defaultMissions
         .filter((mission) => mission.ritualId === "ritual-crepuscule")
-        .map((mission) => normalizeMission({ ...mission }))
+        .map((mission, index) => normalizeMission({ ...mission }, index))
     );
   }
 
-  return migratedMissions;
+  return migratedMissions.sort(
+    (a, b) =>
+      ritualOrder.indexOf(a.ritualId) -
+      ritualOrder.indexOf(b.ritualId)
+  );
+}
+
+function normalizeDayArchive(
+  day: Partial<DayArchive>
+): DayArchive {
+  const completedMissions = Array.isArray(day.completedMissions)
+    ? day.completedMissions.map((mission) =>
+        normalizeCompletedMission(mission)
+      )
+    : [];
+
+  return {
+    date:
+      typeof day.date === "string" && day.date
+        ? day.date
+        : getTodayDate(),
+    xpGained: cleanNumber(
+      day.xpGained,
+      completedMissions.reduce(
+        (total, mission) => total + mission.xp,
+        0
+      )
+    ),
+    gloryGained: cleanNumber(day.gloryGained, 0),
+    completedMissions,
+    skippedMissionCount: cleanNumber(day.skippedMissionCount, 0),
+    plannedMissionCount: cleanNumber(
+      day.plannedMissionCount,
+      completedMissions.length
+    ),
+  };
+}
+
+function normalizePillarProgress(
+  value: Partial<PillarProgress> | undefined
+): PillarProgress {
+  const empty = createEmptyPillarProgress();
+
+  if (!value || typeof value !== "object") {
+    return empty;
+  }
+
+  return {
+    Force: cleanNumber(value.Force, 0),
+    Savoir: cleanNumber(value.Savoir, 0),
+    Discipline: cleanNumber(value.Discipline, 0),
+    Santé: cleanNumber(value.Santé, 0),
+    Leadership: cleanNumber(value.Leadership, 0),
+    Foi: cleanNumber(value.Foi, 0),
+    Relations: cleanNumber(value.Relations, 0),
+  };
 }
 
 function createDefaultSave(): SaveData {
   return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
     currentDate: getTodayDate(),
     missionIndex: 0,
     xp: 0,
@@ -133,6 +277,79 @@ function createDefaultSave(): SaveData {
     lastCompletedDate: null,
     missionConfigVersion: CONFIG_VERSION,
     defeatedBossIds: [],
+  };
+}
+
+export function normalizeSaveData(value: unknown): SaveData {
+  const defaultSave = createDefaultSave();
+
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value)
+  ) {
+    return defaultSave;
+  }
+
+  const raw = value as Partial<SaveData>;
+
+  const dailyMissions = Array.isArray(raw.dailyMissions)
+    ? migrateMissions(raw.dailyMissions, raw.missionConfigVersion ?? 1)
+    : cloneDefaultMissions();
+
+  const completedMissions = Array.isArray(raw.completedMissions)
+    ? raw.completedMissions.map((mission) =>
+        normalizeCompletedMission(mission)
+      )
+    : [];
+
+  const completedMissionIds = Array.isArray(raw.completedMissionIds)
+    ? raw.completedMissionIds.filter(
+        (id): id is string => typeof id === "string"
+      )
+    : completedMissions.map((mission) => mission.id);
+
+  const skippedMissionIds = Array.isArray(raw.skippedMissionIds)
+    ? raw.skippedMissionIds.filter(
+        (id): id is string => typeof id === "string"
+      )
+    : [];
+
+  const dayHistory = Array.isArray(raw.dayHistory)
+    ? raw.dayHistory.map((day) => normalizeDayArchive(day))
+    : [];
+
+  return {
+    ...defaultSave,
+    ...raw,
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    currentDate:
+      typeof raw.currentDate === "string" && raw.currentDate
+        ? raw.currentDate
+        : defaultSave.currentDate,
+    missionIndex: cleanNumber(raw.missionIndex, 0),
+    xp: cleanNumber(raw.xp, 0),
+    glory: cleanNumber(raw.glory, 0),
+    bossHp: cleanNumber(raw.bossHp, activeBoss.maxHp),
+    dailyGlory: cleanNumber(raw.dailyGlory, 0),
+    completedMissions,
+    completedMissionIds,
+    skippedMissionIds,
+    dailyMissions,
+    dayHistory,
+    pillarProgress: normalizePillarProgress(raw.pillarProgress),
+    currentStreak: cleanNumber(raw.currentStreak, 0),
+    bestStreak: cleanNumber(raw.bestStreak, 0),
+    lastCompletedDate:
+      typeof raw.lastCompletedDate === "string"
+        ? raw.lastCompletedDate
+        : null,
+    missionConfigVersion: CONFIG_VERSION,
+    defeatedBossIds: Array.isArray(raw.defeatedBossIds)
+      ? raw.defeatedBossIds.filter(
+          (id): id is string => typeof id === "string"
+        )
+      : [],
   };
 }
 
@@ -161,93 +378,75 @@ export function useGame() {
 
   useEffect(() => {
     const stored = localStorage.getItem(SAVE_KEY);
+
     if (!stored) return;
 
-    const parsedSave = JSON.parse(stored) as Partial<SaveData>;
-    const defaultSave = createDefaultSave();
+    try {
+      const parsedSave = JSON.parse(stored);
+      const storedSave = normalizeSaveData(parsedSave);
+      const today = getTodayDate();
 
-    const storedMissions = parsedSave.dailyMissions?.length
-      ? parsedSave.dailyMissions
-      : cloneDefaultMissions();
+      if (storedSave.currentDate !== today) {
+        const yesterday = getPreviousDate(today);
 
-    const storedVersion = parsedSave.missionConfigVersion ?? 1;
+        const streakStillAlive =
+          storedSave.lastCompletedDate === yesterday ||
+          storedSave.lastCompletedDate === today;
 
-    const completedMissionIds =
-      parsedSave.completedMissionIds ??
-      parsedSave.completedMissions?.map((mission) => mission.id) ??
-      [];
+        const shouldArchiveDay =
+          storedSave.completedMissions.length > 0 ||
+          storedSave.skippedMissionIds.length > 0 ||
+          storedSave.dailyGlory > 0;
 
-    const storedSave: SaveData = {
-      ...defaultSave,
-      ...parsedSave,
-      completedMissions: parsedSave.completedMissions ?? [],
-      completedMissionIds,
-      skippedMissionIds: parsedSave.skippedMissionIds ?? [],
-      dailyMissions: migrateMissions(storedMissions, storedVersion),
-      dayHistory: (parsedSave.dayHistory ?? []).map((day) => ({
-        ...day,
-        skippedMissionCount: day.skippedMissionCount ?? 0,
-        plannedMissionCount:
-          day.plannedMissionCount ?? day.completedMissions.length,
-      })),
-      pillarProgress: {
-        ...createEmptyPillarProgress(),
-        ...(parsedSave.pillarProgress ?? {}),
-      },
-      currentStreak: parsedSave.currentStreak ?? 0,
-      bestStreak: parsedSave.bestStreak ?? 0,
-      lastCompletedDate: parsedSave.lastCompletedDate ?? null,
-      defeatedBossIds: parsedSave.defeatedBossIds ?? [],
-      missionConfigVersion: CONFIG_VERSION,
-    };
+        const historyWithoutDuplicate = storedSave.dayHistory.filter(
+          (day) => day.date !== storedSave.currentDate
+        );
 
-    const today = getTodayDate();
+        const nextHistory = shouldArchiveDay
+          ? [createDayArchive(storedSave), ...historyWithoutDuplicate]
+          : historyWithoutDuplicate;
 
-    if (storedSave.currentDate !== today) {
-      const yesterday = getPreviousDate(today);
+        const newDaySave: SaveData = {
+          ...storedSave,
+          currentDate: today,
+          missionIndex: 0,
+          dailyGlory: 0,
+          completedMissions: [],
+          completedMissionIds: [],
+          skippedMissionIds: [],
+          dayHistory: nextHistory,
+          currentStreak: streakStillAlive
+            ? storedSave.currentStreak
+            : 0,
+        };
 
-      const streakStillAlive =
-        storedSave.lastCompletedDate === yesterday ||
-        storedSave.lastCompletedDate === today;
+        setSave(newDaySave);
+        localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
 
-      const shouldArchiveDay =
-        storedSave.completedMissions.length > 0 ||
-        storedSave.skippedMissionIds.length > 0 ||
-        storedSave.dailyGlory > 0;
+        setMessage(
+          "Une nouvelle journée commence. La précédente rejoint les Archives."
+        );
 
-      const historyWithoutDuplicate = storedSave.dayHistory.filter(
-        (day) => day.date !== storedSave.currentDate
-      );
+        return;
+      }
 
-      const nextHistory = shouldArchiveDay
-        ? [createDayArchive(storedSave), ...historyWithoutDuplicate]
-        : historyWithoutDuplicate;
+      setSave(storedSave);
+      localStorage.setItem(SAVE_KEY, JSON.stringify(storedSave));
+    } catch {
+      const freshSave = createDefaultSave();
 
-      const newDaySave: SaveData = {
-        ...storedSave,
-        currentDate: today,
-        missionIndex: 0,
-        dailyGlory: 0,
-        completedMissions: [],
-        completedMissionIds: [],
-        skippedMissionIds: [],
-        dayHistory: nextHistory,
-        currentStreak: streakStillAlive ? storedSave.currentStreak : 0,
-      };
-
-      setSave(newDaySave);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
+      localStorage.setItem(SAVE_KEY, JSON.stringify(freshSave));
+      setSave(freshSave);
       setMessage(
-        "Une nouvelle journée commence. La précédente rejoint les Archives."
+        "La sauvegarde locale était illisible. RAS a recréé une base propre."
       );
-      return;
     }
-
-    setSave(storedSave);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(storedSave));
   }, []);
 
-  const activeMissions = getMissionsForDate(save.dailyMissions, save.currentDate);
+  const activeMissions = getMissionsForDate(
+    save.dailyMissions,
+    save.currentDate
+  );
 
   const resolvedMissionIds = [
     ...save.completedMissionIds,
@@ -263,13 +462,19 @@ export function useGame() {
   );
 
   function updateSave(nextSave: SaveData) {
-    setSave(nextSave);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(nextSave));
+    const normalizedSave = normalizeSaveData(nextSave);
+
+    setSave(normalizedSave);
+    localStorage.setItem(SAVE_KEY, JSON.stringify(normalizedSave));
   }
 
-  function calculateStreak(nextResolvedCount: number, plannedMissionCount: number) {
+  function calculateStreak(
+    nextResolvedCount: number,
+    plannedMissionCount: number
+  ) {
     const dayCompleted =
-      plannedMissionCount > 0 && nextResolvedCount >= plannedMissionCount;
+      plannedMissionCount > 0 &&
+      nextResolvedCount >= plannedMissionCount;
 
     const today = getTodayDate();
 
@@ -284,7 +489,9 @@ export function useGame() {
     const yesterday = getPreviousDate(today);
 
     const currentStreak =
-      save.lastCompletedDate === yesterday ? save.currentStreak + 1 : 1;
+      save.lastCompletedDate === yesterday
+        ? save.currentStreak + 1
+        : 1;
 
     return {
       currentStreak,
@@ -332,7 +539,10 @@ export function useGame() {
 
     const dayCompleted = nextResolvedCount >= activeMissions.length;
 
-    const nextBossHp = Math.max(save.bossHp - missionToComplete.damage, 0);
+    const nextBossHp = Math.max(
+      save.bossHp - missionToComplete.damage,
+      0
+    );
 
     const bossJustDefeated =
       save.bossHp > 0 &&
@@ -345,7 +555,10 @@ export function useGame() {
 
     const bossReward = bossJustDefeated ? activeBoss.rewardGlory : 0;
 
-    const streak = calculateStreak(nextResolvedCount, activeMissions.length);
+    const streak = calculateStreak(
+      nextResolvedCount,
+      activeMissions.length
+    );
 
     updateSave({
       ...save,
@@ -354,7 +567,10 @@ export function useGame() {
       glory: save.glory + missionToComplete.glory + bossReward,
       dailyGlory: save.dailyGlory + missionToComplete.glory,
       bossHp: nextBossHp,
-      completedMissions: [...save.completedMissions, completedMission],
+      completedMissions: [
+        ...save.completedMissions,
+        completedMission,
+      ],
       completedMissionIds: nextCompletedMissionIds,
       pillarProgress: updatedPillarProgress,
       currentStreak: streak.currentStreak,
@@ -382,6 +598,7 @@ export function useGame() {
 
   function skipMission(missionId: string) {
     const mission = activeMissions.find((item) => item.id === missionId);
+
     if (!mission) return;
 
     if (
@@ -391,14 +608,20 @@ export function useGame() {
       return;
     }
 
-    const nextSkippedMissionIds = [...save.skippedMissionIds, missionId];
+    const nextSkippedMissionIds = [
+      ...save.skippedMissionIds,
+      missionId,
+    ];
 
     const nextResolvedCount =
       save.completedMissionIds.length + nextSkippedMissionIds.length;
 
     const dayCompleted = nextResolvedCount >= activeMissions.length;
 
-    const streak = calculateStreak(nextResolvedCount, activeMissions.length);
+    const streak = calculateStreak(
+      nextResolvedCount,
+      activeMissions.length
+    );
 
     updateSave({
       ...save,
@@ -427,7 +650,7 @@ export function useGame() {
   ) {
     if (ritualStarted || !title.trim() || daysOfWeek.length === 0) return;
 
-    const newMission: Mission = normalizeMission({
+    const newMission = normalizeMission({
       id: `mission-${Date.now()}`,
       chapterId: "chapter-ras",
       bossId: "boss-chaos",
@@ -441,10 +664,10 @@ export function useGame() {
       daysOfWeek,
     });
 
-    const ritualOrder = ["ritual-aube", "ritual-jour", "ritual-crepuscule"];
-
     const updatedMissions = [...save.dailyMissions, newMission].sort(
-      (a, b) => ritualOrder.indexOf(a.ritualId) - ritualOrder.indexOf(b.ritualId)
+      (a, b) =>
+        ritualOrder.indexOf(a.ritualId) -
+        ritualOrder.indexOf(b.ritualId)
     );
 
     updateSave({
