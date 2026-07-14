@@ -20,4 +20,33 @@ export const projectDetails: ProjectDetails[] = [
     rewardGlory: 500,
     icon: "⚒️",
   },
+  {
+    id: "project-corps-performance",
+    title: "Forger le Corps",
+    description:
+      "Transformer l’énergie physique, la santé et l’entraînement en progression visible.",
+    objective:
+      "Ancrer les séances, la récupération et les routines de santé dans le système quotidien.",
+    targetXp: 600,
+    rewardGlory: 250,
+    icon: "💪",
+  },
+  {
+    id: "project-ordre-mental",
+    title: "Clarifier l’Ordre Mental",
+    description:
+      "Réduire le chaos par la planification, l’étude, la prière et les décisions utiles.",
+    objective:
+      "Installer des actions régulières de discipline, savoir et foi pour stabiliser les journées.",
+    targetXp: 600,
+    rewardGlory: 250,
+    icon: "🛡️",
+  },
 ];
+
+export function getProjectDetail(projectId: string) {
+  return (
+    projectDetails.find((project) => project.id === projectId) ??
+    projectDetails[0]
+  );
+}

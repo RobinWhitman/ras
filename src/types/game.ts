@@ -66,6 +66,7 @@ export interface CompletedMission {
   id: string;
   title: string;
   pillar: Pillar;
+  projectId: string;
   xp: number;
   glory: number;
 }

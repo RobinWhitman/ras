@@ -105,6 +105,10 @@ function normalizeCompletedMission(
         ? mission.title.trim()
         : "Mission accomplie",
     pillar: isPillar(mission.pillar) ? mission.pillar : "Discipline",
+    projectId:
+      typeof mission.projectId === "string" && mission.projectId.trim()
+        ? mission.projectId
+        : "project-ras-v1",
     xp: cleanNumber(mission.xp, 0),
     glory: cleanNumber(mission.glory, 0),
   };
@@ -515,13 +519,13 @@ export function useGame() {
     }
 
     const completedMission: CompletedMission = {
-      id: missionToComplete.id,
-      title: missionToComplete.title,
-      pillar: missionToComplete.pillar,
-      xp: missionToComplete.xp,
-      glory: missionToComplete.glory,
-    };
-
+  id: missionToComplete.id,
+  title: missionToComplete.title,
+  pillar: missionToComplete.pillar,
+  projectId: missionToComplete.projectId,
+  xp: missionToComplete.xp,
+  glory: missionToComplete.glory,
+};
     const updatedPillarProgress: PillarProgress = {
       ...save.pillarProgress,
       [missionToComplete.pillar]:

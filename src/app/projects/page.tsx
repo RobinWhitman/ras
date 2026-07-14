@@ -7,41 +7,43 @@ import { useGame } from "@/hooks/useGame";
 export default function ProjectsPage() {
   const { save } = useGame();
 
-  const project = projectDetails[0];
+  function getProjectXp(projectId: string) {
+    const archivedXp = save.dayHistory.reduce(
+      (daysTotal, day) =>
+        daysTotal +
+        day.completedMissions
+          .filter((mission) => mission.projectId === projectId)
+          .reduce(
+            (missionsTotal, mission) => missionsTotal + mission.xp,
+            0
+          ),
+      0
+    );
 
-  const archivedXp = save.dayHistory.reduce(
-    (daysTotal, day) =>
-      daysTotal +
-      day.completedMissions.reduce(
-        (missionsTotal, mission) =>
-          missionsTotal + mission.xp,
-        0
-      ),
+    const todayXp = save.completedMissions
+      .filter((mission) => mission.projectId === projectId)
+      .reduce((total, mission) => total + mission.xp, 0);
+
+    return {
+      archivedXp,
+      todayXp,
+      totalXp: archivedXp + todayXp,
+    };
+  }
+
+  const totalInvestedXp = projectDetails.reduce(
+    (total, project) => total + getProjectXp(project.id).totalXp,
     0
   );
 
-  const todayXp = save.completedMissions.reduce(
-    (total, mission) => total + mission.xp,
-    0
-  );
-
-  const projectXp = archivedXp + todayXp;
-
-  const progress = Math.min(
-    100,
-    Math.round((projectXp / project.targetXp) * 100)
-  );
-
-  const completed = projectXp >= project.targetXp;
-
-  const remainingXp = Math.max(
-    project.targetXp - projectXp,
-    0
-  );
+  const completedProjects = projectDetails.filter((project) => {
+    const { totalXp } = getProjectXp(project.id);
+    return totalXp >= project.targetXp;
+  });
 
   return (
     <main className="min-h-screen bg-black p-6 text-white">
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex items-center justify-between rounded-xl border border-zinc-800 p-5">
           <div>
             <p className="text-sm uppercase tracking-widest text-yellow-400">
@@ -61,134 +63,147 @@ export default function ProjectsPage() {
           </Link>
         </header>
 
-        <section
-          className={`rounded-xl border p-6 ${
-            completed
-              ? "border-yellow-500 bg-yellow-500/10"
-              : "border-zinc-800"
-          }`}
-        >
-          <div className="flex flex-col justify-between gap-5 md:flex-row">
-            <div className="max-w-3xl">
-              <p className="text-4xl">
-                {project.icon}
-              </p>
-
-              <p className="mt-3 text-sm uppercase tracking-widest text-yellow-400">
-                {completed ? "Projet terminé" : "Projet actif"}
-              </p>
-
-              <h2 className="mt-2 text-3xl font-bold">
-                {project.title}
-              </h2>
-
-              <p className="mt-4 text-zinc-400">
-                {project.description}
-              </p>
-            </div>
-
-            <div className="min-w-56 rounded-xl border border-zinc-800 p-4">
-              <p className="text-sm text-zinc-500">
-                Récompense finale
-              </p>
-
-              <p className="mt-1 text-2xl font-bold text-yellow-400">
-                +{project.rewardGlory} Glory
-              </p>
-
-              <p className="mt-5 text-sm text-zinc-500">
-                État
-              </p>
-
-              <p className="mt-1 text-xl font-bold">
-                {completed ? "🏆 Accompli" : "⚒️ En construction"}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="font-bold">
-                Progression
-              </span>
-
-              <span className="text-yellow-400">
-                {projectXp} / {project.targetXp} XP
-              </span>
-            </div>
-
-            <div className="h-5 overflow-hidden rounded-full bg-zinc-800">
-              <div
-                className="h-full bg-yellow-500 transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            <div className="mt-2 flex justify-between text-sm text-zinc-500">
-              <span>{progress}% accompli</span>
-
-              <span>
-                {completed
-                  ? "Objectif atteint"
-                  : `${remainingXp} XP restants`}
-              </span>
-            </div>
-          </div>
-        </section>
-
         <section className="grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              XP investis aujourd’hui
+              Projets suivis
             </p>
 
             <p className="mt-2 text-3xl font-bold">
-              {todayXp}
+              {projectDetails.length}
             </p>
           </div>
 
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              XP archivés
+              Projets terminés
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
-              {archivedXp}
+            <p className="mt-2 text-3xl font-bold text-yellow-400">
+              {completedProjects.length}
             </p>
           </div>
 
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              Journées investies
+              XP investis
             </p>
 
             <p className="mt-2 text-3xl font-bold">
-              {save.dayHistory.length}
+              {totalInvestedXp}
             </p>
           </div>
         </section>
 
-        <section className="rounded-xl border border-zinc-800 p-5">
-          <h2 className="text-2xl font-bold">
-            🎯 Objectif du Projet
-          </h2>
+        <section className="grid gap-5 lg:grid-cols-3">
+          {projectDetails.map((project) => {
+            const { archivedXp, todayXp, totalXp } = getProjectXp(project.id);
 
-          <p className="mt-3 text-zinc-400">
-            {project.objective}
-          </p>
+            const progress = Math.min(
+              100,
+              Math.round((totalXp / project.targetXp) * 100)
+            );
+
+            const completed = totalXp >= project.targetXp;
+
+            const remainingXp = Math.max(
+              project.targetXp - totalXp,
+              0
+            );
+
+            return (
+              <article
+                key={project.id}
+                className={`rounded-xl border p-5 ${
+                  completed
+                    ? "border-yellow-500 bg-yellow-500/10"
+                    : "border-zinc-800"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-4xl">
+                      {project.icon}
+                    </p>
+
+                    <p className="mt-3 text-xs uppercase tracking-widest text-yellow-400">
+                      {completed ? "Projet terminé" : "Projet actif"}
+                    </p>
+
+                    <h2 className="mt-2 text-2xl font-bold">
+                      {project.title}
+                    </h2>
+                  </div>
+
+                  <p className="text-2xl font-bold text-yellow-400">
+                    {progress}%
+                  </p>
+                </div>
+
+                <p className="mt-4 text-sm text-zinc-400">
+                  {project.description}
+                </p>
+
+                <div className="mt-5">
+                  <div className="mb-2 flex items-center justify-between text-sm">
+                    <span className="font-bold">
+                      Progression
+                    </span>
+
+                    <span className="text-yellow-400">
+                      {totalXp} / {project.targetXp} XP
+                    </span>
+                  </div>
+
+                  <div className="h-4 overflow-hidden rounded-full bg-zinc-800">
+                    <div
+                      className="h-full bg-yellow-500 transition-all duration-500"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+
+                  <p className="mt-2 text-xs text-zinc-500">
+                    {completed
+                      ? `Objectif atteint · +${project.rewardGlory} Glory prévue`
+                      : `${remainingXp} XP restants`}
+                  </p>
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg border border-zinc-800 p-3">
+                    <p className="text-zinc-500">
+                      Aujourd’hui
+                    </p>
+
+                    <p className="mt-1 font-bold">
+                      {todayXp} XP
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-zinc-800 p-3">
+                    <p className="text-zinc-500">
+                      Archives
+                    </p>
+
+                    <p className="mt-1 font-bold">
+                      {archivedXp} XP
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-lg border border-zinc-800 p-3">
+                  <p className="text-xs uppercase tracking-widest text-zinc-500">
+                    Objectif
+                  </p>
+
+                  <p className="mt-2 text-sm text-zinc-300">
+                    {project.objective}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
         </section>
-
-        {completed && (
-          <section className="rounded-xl border border-yellow-500 bg-yellow-500/10 p-6">
-            <p className="text-2xl font-bold text-yellow-400">
-              🏆 Projet terminé
-            </p>
-
-            <p className="mt-2 text-zinc-300">
-              La V1 de RAS a atteint son objectif de progression.
-            </p>
-          </section>
-        )}
       </div>
     </main>
   );

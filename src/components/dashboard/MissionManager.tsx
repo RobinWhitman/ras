@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { allWeekDays, rituals } from "@/data/game";
+import { allWeekDays, projects, rituals } from "@/data/game";
 import type { Mission, Pillar, WeekDay } from "@/types/game";
 
 type MissionManagerProps = {
@@ -14,7 +14,8 @@ type MissionManagerProps = {
     daysOfWeek: WeekDay[],
     xp: number,
     glory: number,
-    damage: number
+    damage: number,
+    projectId?: string
   ) => void;
   onUpdateMission: (mission: Mission) => void;
   onRemoveMission: (missionId: string) => void;
@@ -77,6 +78,7 @@ export default function MissionManager({
   const [title, setTitle] = useState("");
   const [pillar, setPillar] = useState<Pillar>("Discipline");
   const [ritualId, setRitualId] = useState("ritual-aube");
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? "project-ras-v1");
   const [daysOfWeek, setDaysOfWeek] = useState<WeekDay[]>(allWeekDays);
   const [xp, setXp] = useState(10);
   const [glory, setGlory] = useState(5);
@@ -92,7 +94,8 @@ export default function MissionManager({
       daysOfWeek,
       clampNumber(xp),
       clampNumber(glory),
-      clampNumber(damage)
+      clampNumber(damage),
+      projectId
     );
 
     setTitle("");
@@ -159,7 +162,7 @@ export default function MissionManager({
                             className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-bold text-white"
                           />
 
-                          <div className="grid gap-2 md:grid-cols-2">
+                          <div className="grid gap-2 md:grid-cols-3">
                             <select
                               value={mission.pillar}
                               onChange={(event) =>
@@ -191,6 +194,22 @@ export default function MissionManager({
                                 </option>
                               ))}
                             </select>
+
+                            <select
+                              value={mission.projectId}
+                              onChange={(event) =>
+                                updateMission(mission, {
+                                  projectId: event.target.value,
+                                })
+                              }
+                              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white"
+                            >
+                              {projects.map((project) => (
+                                <option key={project.id} value={project.id}>
+                                  {project.title}
+                                </option>
+                              ))}
+                            </select>
                           </div>
 
                           <div className="grid grid-cols-3 gap-2">
@@ -202,9 +221,7 @@ export default function MissionManager({
                                 value={mission.xp}
                                 onChange={(event) =>
                                   updateMission(mission, {
-                                    xp: clampNumber(
-                                      Number(event.target.value)
-                                    ),
+                                    xp: clampNumber(Number(event.target.value)),
                                   })
                                 }
                                 className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
@@ -219,9 +236,7 @@ export default function MissionManager({
                                 value={mission.glory}
                                 onChange={(event) =>
                                   updateMission(mission, {
-                                    glory: clampNumber(
-                                      Number(event.target.value)
-                                    ),
+                                    glory: clampNumber(Number(event.target.value)),
                                   })
                                 }
                                 className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
@@ -236,9 +251,7 @@ export default function MissionManager({
                                 value={mission.damage}
                                 onChange={(event) =>
                                   updateMission(mission, {
-                                    damage: clampNumber(
-                                      Number(event.target.value)
-                                    ),
+                                    damage: clampNumber(Number(event.target.value)),
                                   })
                                 }
                                 className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
@@ -332,6 +345,18 @@ export default function MissionManager({
               {rituals.map((ritual) => (
                 <option key={ritual.id} value={ritual.id}>
                   {ritual.title}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={projectId}
+              onChange={(event) => setProjectId(event.target.value)}
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white lg:col-span-3"
+            >
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.title}
                 </option>
               ))}
             </select>
