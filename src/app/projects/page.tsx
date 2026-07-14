@@ -7,32 +7,8 @@ import { useGame } from "@/hooks/useGame";
 export default function ProjectsPage() {
   const { save } = useGame();
 
-  function getProjectXp(projectId: string) {
-    const archivedXp = save.dayHistory.reduce(
-      (daysTotal, day) =>
-        daysTotal +
-        day.completedMissions
-          .filter((mission) => mission.projectId === projectId)
-          .reduce(
-            (missionsTotal, mission) => missionsTotal + mission.xp,
-            0
-          ),
-      0
-    );
-
-    const todayXp = save.completedMissions
-      .filter((mission) => mission.projectId === projectId)
-      .reduce((total, mission) => total + mission.xp, 0);
-
-    return {
-      archivedXp,
-      todayXp,
-      totalXp: archivedXp + todayXp,
-    };
-  }
-
   const totalInvestedXp = projectDetails.reduce(
-    (total, project) => total + getProjectXp(project.id).totalXp,
+    (total, project) => total + (save.projectProgress[project.id] ?? 0),
     0
   );
 
@@ -85,7 +61,7 @@ export default function ProjectsPage() {
 
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              XP investis
+              XP permanent investi
             </p>
 
             <p className="mt-2 text-3xl font-bold">
@@ -96,7 +72,7 @@ export default function ProjectsPage() {
 
         <section className="grid gap-5 lg:grid-cols-3">
           {projectDetails.map((project) => {
-            const { archivedXp, todayXp, totalXp } = getProjectXp(project.id);
+            const totalXp = save.projectProgress[project.id] ?? 0;
 
             const progress = Math.min(
               100,
@@ -155,7 +131,7 @@ export default function ProjectsPage() {
                 <div className="mt-5">
                   <div className="mb-2 flex items-center justify-between text-sm">
                     <span className="font-bold">
-                      Progression
+                      Progression permanente
                     </span>
 
                     <span className="text-yellow-400">
@@ -174,39 +150,29 @@ export default function ProjectsPage() {
                     {rewardClaimed
                       ? `Récompense déjà versée : +${project.rewardGlory} Glory`
                       : objectiveReached
-                        ? "La prochaine Mission liée versera la récompense si nécessaire."
+                        ? "Objectif atteint. Récompense en attente de validation par le moteur."
                         : `${remainingXp} XP restants`}
                   </p>
                 </div>
 
-                <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
+                <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
                   <div className="rounded-lg border border-zinc-800 p-3">
                     <p className="text-zinc-500">
-                      Aujourd’hui
-                    </p>
-
-                    <p className="mt-1 font-bold">
-                      {todayXp} XP
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-zinc-800 p-3">
-                    <p className="text-zinc-500">
-                      Archives
-                    </p>
-
-                    <p className="mt-1 font-bold">
-                      {archivedXp} XP
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-zinc-800 p-3">
-                    <p className="text-zinc-500">
-                      Missions
+                      Missions liées
                     </p>
 
                     <p className="mt-1 font-bold">
                       {linkedMissionCount}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-zinc-800 p-3">
+                    <p className="text-zinc-500">
+                      Récompense
+                    </p>
+
+                    <p className="mt-1 font-bold text-yellow-400">
+                      +{project.rewardGlory} Glory
                     </p>
                   </div>
                 </div>

@@ -15,12 +15,13 @@ import type {
   Mission,
   Pillar,
   PillarProgress,
+  ProjectProgress,
   SaveData,
   WeekDay,
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v9";
-const SAVE_SCHEMA_VERSION = 3;
+const SAVE_SCHEMA_VERSION = 4;
 const CONFIG_VERSION = 4;
 const activeBoss = bosses[0];
 
@@ -100,6 +101,13 @@ function createEmptyPillarProgress(): PillarProgress {
     Foi: 0,
     Relations: 0,
   };
+}
+
+function createEmptyProjectProgress(): ProjectProgress {
+  return projectDetails.reduce<ProjectProgress>((progress, project) => {
+    progress[project.id] = 0;
+    return progress;
+  }, {});
 }
 
 function normalizeCompletedMission(
@@ -263,6 +271,53 @@ function normalizePillarProgress(
   };
 }
 
+function rebuildProjectProgressFromHistory(
+  completedMissions: CompletedMission[],
+  dayHistory: DayArchive[]
+): ProjectProgress {
+  const progress = createEmptyProjectProgress();
+
+  dayHistory.forEach((day) => {
+    day.completedMissions.forEach((mission) => {
+      progress[mission.projectId] =
+        (progress[mission.projectId] ?? 0) + mission.xp;
+    });
+  });
+
+  completedMissions.forEach((mission) => {
+    progress[mission.projectId] =
+      (progress[mission.projectId] ?? 0) + mission.xp;
+  });
+
+  return progress;
+}
+
+function normalizeProjectProgress(
+  value: ProjectProgress | undefined,
+  completedMissions: CompletedMission[],
+  dayHistory: DayArchive[]
+): ProjectProgress {
+  const rebuilt = rebuildProjectProgressFromHistory(
+    completedMissions,
+    dayHistory
+  );
+
+  if (!value || typeof value !== "object") {
+    return rebuilt;
+  }
+
+  const normalized = createEmptyProjectProgress();
+
+  projectDetails.forEach((project) => {
+    normalized[project.id] = Math.max(
+      cleanNumber(value[project.id], 0),
+      rebuilt[project.id] ?? 0
+    );
+  });
+
+  return normalized;
+}
+
 function createDefaultSave(): SaveData {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
@@ -278,6 +333,7 @@ function createDefaultSave(): SaveData {
     dailyMissions: cloneDefaultMissions(),
     dayHistory: [],
     pillarProgress: createEmptyPillarProgress(),
+    projectProgress: createEmptyProjectProgress(),
     currentStreak: 0,
     bestStreak: 0,
     lastCompletedDate: null,
@@ -338,6 +394,11 @@ export function normalizeSaveData(value: unknown): SaveData {
     dailyMissions,
     dayHistory,
     pillarProgress: normalizePillarProgress(raw.pillarProgress),
+    projectProgress: normalizeProjectProgress(
+      raw.projectProgress,
+      completedMissions,
+      dayHistory
+    ),
     currentStreak: cleanNumber(raw.currentStreak, 0),
     bestStreak: cleanNumber(raw.bestStreak, 0),
     lastCompletedDate:
@@ -367,26 +428,6 @@ function createDayArchive(save: SaveData): DayArchive {
       save.currentDate
     ).length,
   };
-}
-
-function getProjectXp(save: SaveData, projectId: string) {
-  const archivedXp = save.dayHistory.reduce(
-    (daysTotal, day) =>
-      daysTotal +
-      day.completedMissions
-        .filter((mission) => mission.projectId === projectId)
-        .reduce(
-          (missionsTotal, mission) => missionsTotal + mission.xp,
-          0
-        ),
-    0
-  );
-
-  const todayXp = save.completedMissions
-    .filter((mission) => mission.projectId === projectId)
-    .reduce((total, mission) => total + mission.xp, 0);
-
-  return archivedXp + todayXp;
 }
 
 export function useGame() {
@@ -547,6 +588,13 @@ export function useGame() {
         missionToComplete.glory,
     };
 
+    const updatedProjectProgress: ProjectProgress = {
+      ...save.projectProgress,
+      [missionToComplete.projectId]:
+        (save.projectProgress[missionToComplete.projectId] ?? 0) +
+        missionToComplete.xp,
+    };
+
     const nextCompletedMissionIds = [
       ...save.completedMissionIds,
       missionToComplete.id,
@@ -582,12 +630,11 @@ export function useGame() {
       (item) => item.id === missionToComplete.projectId
     );
 
-    const previousProjectXp = getProjectXp(
-      save,
-      missionToComplete.projectId
-    );
+    const previousProjectXp =
+      save.projectProgress[missionToComplete.projectId] ?? 0;
 
-    const nextProjectXp = previousProjectXp + missionToComplete.xp;
+    const nextProjectXp =
+      updatedProjectProgress[missionToComplete.projectId] ?? 0;
 
     const projectJustCompleted =
       !!project &&
@@ -622,6 +669,7 @@ export function useGame() {
       completedMissions: nextCompletedMissions,
       completedMissionIds: nextCompletedMissionIds,
       pillarProgress: updatedPillarProgress,
+      projectProgress: updatedProjectProgress,
       currentStreak: streak.currentStreak,
       bestStreak: streak.bestStreak,
       lastCompletedDate: streak.lastCompletedDate,

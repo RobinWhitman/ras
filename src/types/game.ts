@@ -91,6 +91,8 @@ export interface Companion {
 
 export type PillarProgress = Record<Pillar, number>;
 
+export type ProjectProgress = Record<string, number>;
+
 export interface SaveData {
   schemaVersion: number;
   currentDate: string;
@@ -109,6 +111,7 @@ export interface SaveData {
   dayHistory: DayArchive[];
 
   pillarProgress: PillarProgress;
+  projectProgress: ProjectProgress;
 
   currentStreak: number;
   bestStreak: number;
