@@ -36,10 +36,9 @@ export default function ProjectsPage() {
     0
   );
 
-  const completedProjects = projectDetails.filter((project) => {
-    const { totalXp } = getProjectXp(project.id);
-    return totalXp >= project.targetXp;
-  });
+  const completedProjects = projectDetails.filter((project) =>
+    save.completedProjectIds.includes(project.id)
+  );
 
   return (
     <main className="min-h-screen bg-black p-6 text-white">
@@ -76,7 +75,7 @@ export default function ProjectsPage() {
 
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              Projets terminés
+              Récompenses versées
             </p>
 
             <p className="mt-2 text-3xl font-bold text-yellow-400">
@@ -104,7 +103,8 @@ export default function ProjectsPage() {
               Math.round((totalXp / project.targetXp) * 100)
             );
 
-            const completed = totalXp >= project.targetXp;
+            const objectiveReached = totalXp >= project.targetXp;
+            const rewardClaimed = save.completedProjectIds.includes(project.id);
 
             const remainingXp = Math.max(
               project.targetXp - totalXp,
@@ -119,7 +119,7 @@ export default function ProjectsPage() {
               <article
                 key={project.id}
                 className={`rounded-xl border p-5 ${
-                  completed
+                  rewardClaimed
                     ? "border-yellow-500 bg-yellow-500/10"
                     : "border-zinc-800"
                 }`}
@@ -131,7 +131,11 @@ export default function ProjectsPage() {
                     </p>
 
                     <p className="mt-3 text-xs uppercase tracking-widest text-yellow-400">
-                      {completed ? "Projet terminé" : "Projet actif"}
+                      {rewardClaimed
+                        ? "Récompense versée"
+                        : objectiveReached
+                          ? "Objectif atteint"
+                          : "Projet actif"}
                     </p>
 
                     <h2 className="mt-2 text-2xl font-bold">
@@ -167,9 +171,11 @@ export default function ProjectsPage() {
                   </div>
 
                   <p className="mt-2 text-xs text-zinc-500">
-                    {completed
-                      ? `Objectif atteint · +${project.rewardGlory} Glory prévue`
-                      : `${remainingXp} XP restants`}
+                    {rewardClaimed
+                      ? `Récompense déjà versée : +${project.rewardGlory} Glory`
+                      : objectiveReached
+                        ? "La prochaine Mission liée versera la récompense si nécessaire."
+                        : `${remainingXp} XP restants`}
                   </p>
                 </div>
 

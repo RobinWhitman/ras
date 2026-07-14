@@ -116,4 +116,5 @@ export interface SaveData {
 
   missionConfigVersion: number;
   defeatedBossIds: string[];
+  completedProjectIds: string[];
 }

@@ -92,24 +92,31 @@ Changements validés :
 - conservation de la progression existante après migration ;
 - vérification de `/missions`, `/settings` et `/report`.
 
-## Sprint en cours / prochain
-
 **Macro Sprint 16 — Plusieurs Projets et association réelle Mission → Projet**.
 
 Objectif : permettre plusieurs Projets actifs ou configurables, et faire en sorte que les Missions contribuent réellement à leur Projet lié au lieu d’utiliser seulement l’XP globale.
 
-## Étapes suivantes recommandées
+## Macro Sprint 16B — Projets visibles et récompenses automatiques
 
-1. Plusieurs Projets et association réelle Mission → Projet.
-2. Récompense Projet réellement attribuée une seule fois.
-3. Plusieurs Boss et sélection active.
-4. Rotation / passage au Boss suivant.
-5. Plusieurs Chapitres et progression séquentielle.
-6. Récompense Chapitre réellement attribuée une seule fois.
-7. Clarifier les jours sans Mission et leur effet sur la Série.
-8. Conserver dans les Archives la configuration exacte du jour.
-9. Notifications de Succès et level-up.
-10. Design final et assets.
+Statut : appliqué et testé.
+
+Changements validés :
+
+- plusieurs Projets visibles dans `/projects` ;
+- association réelle Mission → Projet ;
+- XP de Projet calculée uniquement depuis les Missions liées ;
+- champ Projet disponible dans l’éditeur de Missions ;
+- XP, Glory et dégâts retirés de l’édition manuelle ;
+- récompenses de Mission redevenues automatiques ;
+- vérification de `/missions` et `/projects`.
+
+Dernier sprint confirmé : Macro Sprint 16B — Projets visibles et récompenses automatiques.
+
+## Sprint en cours / prochain
+
+**Macro Sprint 17 — Récompense Projet attribuée une seule fois**.
+
+Objectif : lorsqu’un Projet atteint son objectif d’XP, sa récompense de Glory est versée une seule fois et reste persistante.
 
 ## Commandes habituelles
 
