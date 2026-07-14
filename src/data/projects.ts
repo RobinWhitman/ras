@@ -21,23 +21,23 @@ export const projectDetails: ProjectDetails[] = [
     icon: "⚒️",
   },
   {
-    id: "project-corps-performance",
+    id: "project-corps",
     title: "Forger le Corps",
     description:
-      "Transformer l’énergie physique, la santé et l’entraînement en progression visible.",
+      "Transformer l’entraînement, la santé et la récupération en progression durable.",
     objective:
-      "Ancrer les séances, la récupération et les routines de santé dans le système quotidien.",
+      "Ancrer les séances, l’hydratation, la récupération et les routines physiques dans le quotidien.",
     targetXp: 600,
     rewardGlory: 250,
     icon: "💪",
   },
   {
-    id: "project-ordre-mental",
+    id: "project-ordre",
     title: "Clarifier l’Ordre Mental",
     description:
-      "Réduire le chaos par la planification, l’étude, la prière et les décisions utiles.",
+      "Réduire le chaos par la planification, la foi, l’étude et les décisions utiles.",
     objective:
-      "Installer des actions régulières de discipline, savoir et foi pour stabiliser les journées.",
+      "Installer des actions régulières de discipline, savoir et foi pour rendre les journées plus nettes.",
     targetXp: 600,
     rewardGlory: 250,
     icon: "🛡️",

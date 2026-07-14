@@ -111,6 +111,10 @@ export default function ProjectsPage() {
               0
             );
 
+            const linkedMissionCount = save.dailyMissions.filter(
+              (mission) => mission.projectId === project.id
+            ).length;
+
             return (
               <article
                 key={project.id}
@@ -169,7 +173,7 @@ export default function ProjectsPage() {
                   </p>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
                   <div className="rounded-lg border border-zinc-800 p-3">
                     <p className="text-zinc-500">
                       Aujourd’hui
@@ -187,6 +191,16 @@ export default function ProjectsPage() {
 
                     <p className="mt-1 font-bold">
                       {archivedXp} XP
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-zinc-800 p-3">
+                    <p className="text-zinc-500">
+                      Missions
+                    </p>
+
+                    <p className="mt-1 font-bold">
+                      {linkedMissionCount}
                     </p>
                   </div>
                 </div>

@@ -644,27 +644,25 @@ export function useGame() {
   }
 
   function addDailyMission(
-    title: string,
-    pillar: Pillar,
-    ritualId: string,
-    daysOfWeek: WeekDay[] = allWeekDays,
-    xp = 10,
-    glory = 5,
-    damage = 5
-  ) {
+  title: string,
+  pillar: Pillar,
+  ritualId: string,
+  daysOfWeek: WeekDay[] = allWeekDays,
+  projectId = "project-ras-v1"
+) {
     if (ritualStarted || !title.trim() || daysOfWeek.length === 0) return;
 
     const newMission = normalizeMission({
       id: `mission-${Date.now()}`,
       chapterId: "chapter-ras",
       bossId: "boss-chaos",
-      projectId: "project-ras-v1",
+      projectId,
       ritualId,
       title: title.trim(),
       pillar,
-      xp,
-      glory,
-      damage,
+      xp: 10,
+glory: 5,
+damage: 5,
       daysOfWeek,
     });
 

@@ -12,9 +12,6 @@ type MissionManagerProps = {
     pillar: Pillar,
     ritualId: string,
     daysOfWeek: WeekDay[],
-    xp: number,
-    glory: number,
-    damage: number,
     projectId?: string
   ) => void;
   onUpdateMission: (mission: Mission) => void;
@@ -62,9 +59,8 @@ function formatDays(daysOfWeek: WeekDay[]) {
     .join(", ");
 }
 
-function clampNumber(value: number) {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.round(value));
+function formatRewards(mission: Mission) {
+  return `+${mission.xp} XP · +${mission.glory} Glory · -${mission.damage} PV`;
 }
 
 export default function MissionManager({
@@ -78,31 +74,19 @@ export default function MissionManager({
   const [title, setTitle] = useState("");
   const [pillar, setPillar] = useState<Pillar>("Discipline");
   const [ritualId, setRitualId] = useState("ritual-aube");
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? "project-ras-v1");
-  const [daysOfWeek, setDaysOfWeek] = useState<WeekDay[]>(allWeekDays);
-  const [xp, setXp] = useState(10);
-  const [glory, setGlory] = useState(5);
-  const [damage, setDamage] = useState(5);
+  const [projectId, setProjectId] = useState(
+    projects[0]?.id ?? "project-ras-v1"
+  );
+  const [daysOfWeek, setDaysOfWeek] =
+    useState<WeekDay[]>(allWeekDays);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    onAddMission(
-      title,
-      pillar,
-      ritualId,
-      daysOfWeek,
-      clampNumber(xp),
-      clampNumber(glory),
-      clampNumber(damage),
-      projectId
-    );
+    onAddMission(title, pillar, ritualId, daysOfWeek, projectId);
 
     setTitle("");
     setDaysOfWeek(allWeekDays);
-    setXp(10);
-    setGlory(5);
-    setDamage(5);
   }
 
   function updateMission(
@@ -212,51 +196,11 @@ export default function MissionManager({
                             </select>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2">
-                            <label className="text-xs text-zinc-500">
-                              XP
-                              <input
-                                type="number"
-                                min={0}
-                                value={mission.xp}
-                                onChange={(event) =>
-                                  updateMission(mission, {
-                                    xp: clampNumber(Number(event.target.value)),
-                                  })
-                                }
-                                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
-                              />
-                            </label>
-
-                            <label className="text-xs text-zinc-500">
-                              Glory
-                              <input
-                                type="number"
-                                min={0}
-                                value={mission.glory}
-                                onChange={(event) =>
-                                  updateMission(mission, {
-                                    glory: clampNumber(Number(event.target.value)),
-                                  })
-                                }
-                                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
-                              />
-                            </label>
-
-                            <label className="text-xs text-zinc-500">
-                              Dégâts
-                              <input
-                                type="number"
-                                min={0}
-                                value={mission.damage}
-                                onChange={(event) =>
-                                  updateMission(mission, {
-                                    damage: clampNumber(Number(event.target.value)),
-                                  })
-                                }
-                                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm text-white"
-                              />
-                            </label>
+                          <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-400">
+                            Récompenses automatiques :{" "}
+                            <span className="font-bold text-yellow-400">
+                              {formatRewards(mission)}
+                            </span>
                           </div>
 
                           <div>
@@ -360,47 +304,6 @@ export default function MissionManager({
                 </option>
               ))}
             </select>
-
-            <div className="grid grid-cols-3 gap-2 lg:col-span-3">
-              <label className="text-xs text-zinc-500">
-                XP
-                <input
-                  type="number"
-                  min={0}
-                  value={xp}
-                  onChange={(event) =>
-                    setXp(clampNumber(Number(event.target.value)))
-                  }
-                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
-                />
-              </label>
-
-              <label className="text-xs text-zinc-500">
-                Glory
-                <input
-                  type="number"
-                  min={0}
-                  value={glory}
-                  onChange={(event) =>
-                    setGlory(clampNumber(Number(event.target.value)))
-                  }
-                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
-                />
-              </label>
-
-              <label className="text-xs text-zinc-500">
-                Dégâts
-                <input
-                  type="number"
-                  min={0}
-                  value={damage}
-                  onChange={(event) =>
-                    setDamage(clampNumber(Number(event.target.value)))
-                  }
-                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white"
-                />
-              </label>
-            </div>
 
             <div className="lg:col-span-3">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">
