@@ -93,6 +93,10 @@ export type PillarProgress = Record<Pillar, number>;
 
 export type ProjectProgress = Record<string, number>;
 
+export type ProjectLevels = Record<string, number>;
+
+export type CompletedProjectLevels = Record<string, number[]>;
+
 export interface SaveData {
   schemaVersion: number;
   currentDate: string;
@@ -112,6 +116,8 @@ export interface SaveData {
 
   pillarProgress: PillarProgress;
   projectProgress: ProjectProgress;
+  projectLevels: ProjectLevels;
+  completedProjectLevels: CompletedProjectLevels;
 
   currentStreak: number;
   bestStreak: number;

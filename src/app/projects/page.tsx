@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { projectDetails } from "@/data/projects";
-import { useGame } from "@/hooks/useGame";
+import { getProjectTargetXp, useGame } from "@/hooks/useGame";
 
 export default function ProjectsPage() {
   const { save } = useGame();
@@ -12,7 +12,7 @@ export default function ProjectsPage() {
     0
   );
 
-  const completedProjects = projectDetails.filter((project) =>
+  const waitingLevelUps = projectDetails.filter((project) =>
     save.completedProjectIds.includes(project.id)
   );
 
@@ -51,17 +51,20 @@ export default function ProjectsPage() {
 
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              Récompenses versées
+              Niveaux vaincus
             </p>
 
             <p className="mt-2 text-3xl font-bold text-yellow-400">
-              {completedProjects.length}
+              {Object.values(save.completedProjectLevels).reduce(
+                (total, levels) => total + levels.length,
+                0
+              )}
             </p>
           </div>
 
           <div className="rounded-xl border border-zinc-800 p-5">
             <p className="text-sm text-zinc-500">
-              XP permanent investi
+              XP de niveau courant
             </p>
 
             <p className="mt-2 text-3xl font-bold">
@@ -70,22 +73,42 @@ export default function ProjectsPage() {
           </div>
         </section>
 
+        {waitingLevelUps.length > 0 && (
+          <section className="rounded-xl border border-yellow-700 bg-yellow-500/10 p-5">
+            <p className="font-bold text-yellow-400">
+              Niveau suivant préparé demain
+            </p>
+
+            <p className="mt-2 text-sm text-zinc-300">
+              Les Projets vaincus aujourd’hui passeront au niveau suivant au
+              changement de jour.
+            </p>
+          </section>
+        )}
+
         <section className="grid gap-5 lg:grid-cols-3">
           {projectDetails.map((project) => {
+            const currentLevel = save.projectLevels[project.id] ?? 1;
+            const targetXp = getProjectTargetXp(
+              project.targetXp,
+              currentLevel
+            );
             const totalXp = save.projectProgress[project.id] ?? 0;
 
             const progress = Math.min(
               100,
-              Math.round((totalXp / project.targetXp) * 100)
+              Math.round((totalXp / targetXp) * 100)
             );
 
-            const objectiveReached = totalXp >= project.targetXp;
-            const rewardClaimed = save.completedProjectIds.includes(project.id);
+            const levelDefeated =
+              save.completedProjectLevels[project.id]?.includes(
+                currentLevel
+              ) ?? false;
 
-            const remainingXp = Math.max(
-              project.targetXp - totalXp,
-              0
-            );
+            const waitingNextLevel =
+              save.completedProjectIds.includes(project.id);
+
+            const remainingXp = Math.max(targetXp - totalXp, 0);
 
             const linkedMissionCount = save.dailyMissions.filter(
               (mission) => mission.projectId === project.id
@@ -95,7 +118,7 @@ export default function ProjectsPage() {
               <article
                 key={project.id}
                 className={`rounded-xl border p-5 ${
-                  rewardClaimed
+                  levelDefeated
                     ? "border-yellow-500 bg-yellow-500/10"
                     : "border-zinc-800"
                 }`}
@@ -107,16 +130,18 @@ export default function ProjectsPage() {
                     </p>
 
                     <p className="mt-3 text-xs uppercase tracking-widest text-yellow-400">
-                      {rewardClaimed
-                        ? "Récompense versée"
-                        : objectiveReached
-                          ? "Objectif atteint"
-                          : "Projet actif"}
+                      {levelDefeated
+                        ? "Niveau vaincu"
+                        : "Projet actif"}
                     </p>
 
                     <h2 className="mt-2 text-2xl font-bold">
                       {project.title}
                     </h2>
+
+                    <p className="mt-1 text-sm font-bold text-zinc-300">
+                      Niveau {currentLevel}
+                    </p>
                   </div>
 
                   <p className="text-2xl font-bold text-yellow-400">
@@ -131,11 +156,11 @@ export default function ProjectsPage() {
                 <div className="mt-5">
                   <div className="mb-2 flex items-center justify-between text-sm">
                     <span className="font-bold">
-                      Progression permanente
+                      Progression du niveau
                     </span>
 
                     <span className="text-yellow-400">
-                      {totalXp} / {project.targetXp} XP
+                      {totalXp} / {targetXp} XP
                     </span>
                   </div>
 
@@ -147,15 +172,15 @@ export default function ProjectsPage() {
                   </div>
 
                   <p className="mt-2 text-xs text-zinc-500">
-                    {rewardClaimed
-                      ? `Récompense déjà versée : +${project.rewardGlory} Glory`
-                      : objectiveReached
-                        ? "Objectif atteint. Récompense en attente de validation par le moteur."
-                        : `${remainingXp} XP restants`}
+                    {levelDefeated
+                      ? waitingNextLevel
+                        ? "Niveau vaincu. Passage au niveau suivant demain."
+                        : "Niveau vaincu."
+                      : `${remainingXp} XP restants avant victoire`}
                   </p>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
                   <div className="rounded-lg border border-zinc-800 p-3">
                     <p className="text-zinc-500">
                       Missions liées
@@ -173,6 +198,16 @@ export default function ProjectsPage() {
 
                     <p className="mt-1 font-bold text-yellow-400">
                       +{project.rewardGlory} Glory
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-zinc-800 p-3">
+                    <p className="text-zinc-500">
+                      Vaincus
+                    </p>
+
+                    <p className="mt-1 font-bold">
+                      {save.completedProjectLevels[project.id]?.length ?? 0}
                     </p>
                   </div>
                 </div>

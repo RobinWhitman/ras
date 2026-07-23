@@ -11,17 +11,19 @@ import {
 import { projectDetails } from "@/data/projects";
 import type {
   CompletedMission,
+  CompletedProjectLevels,
   DayArchive,
   Mission,
   Pillar,
   PillarProgress,
+  ProjectLevels,
   ProjectProgress,
   SaveData,
   WeekDay,
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v9";
-const SAVE_SCHEMA_VERSION = 4;
+const SAVE_SCHEMA_VERSION = 5;
 const CONFIG_VERSION = 4;
 const activeBoss = bosses[0];
 
@@ -66,6 +68,10 @@ export function getMissionsForDate(
   );
 }
 
+export function getProjectTargetXp(baseTargetXp: number, level: number) {
+  return Math.round(baseTargetXp * (1 + (level - 1) * 0.35));
+}
+
 function isPillar(value: unknown): value is Pillar {
   return pillars.includes(value as Pillar);
 }
@@ -107,6 +113,20 @@ function createEmptyProjectProgress(): ProjectProgress {
   return projectDetails.reduce<ProjectProgress>((progress, project) => {
     progress[project.id] = 0;
     return progress;
+  }, {});
+}
+
+function createDefaultProjectLevels(): ProjectLevels {
+  return projectDetails.reduce<ProjectLevels>((levels, project) => {
+    levels[project.id] = 1;
+    return levels;
+  }, {});
+}
+
+function createEmptyCompletedProjectLevels(): CompletedProjectLevels {
+  return projectDetails.reduce<CompletedProjectLevels>((levels, project) => {
+    levels[project.id] = [];
+    return levels;
   }, {});
 }
 
@@ -318,6 +338,79 @@ function normalizeProjectProgress(
   return normalized;
 }
 
+function normalizeProjectLevels(value: ProjectLevels | undefined): ProjectLevels {
+  const defaults = createDefaultProjectLevels();
+
+  if (!value || typeof value !== "object") {
+    return defaults;
+  }
+
+  const normalized = createDefaultProjectLevels();
+
+  projectDetails.forEach((project) => {
+    normalized[project.id] = Math.max(1, cleanNumber(value[project.id], 1));
+  });
+
+  return normalized;
+}
+
+function normalizeCompletedProjectLevels(
+  value: CompletedProjectLevels | undefined
+): CompletedProjectLevels {
+  const defaults = createEmptyCompletedProjectLevels();
+
+  if (!value || typeof value !== "object") {
+    return defaults;
+  }
+
+  const normalized = createEmptyCompletedProjectLevels();
+
+  projectDetails.forEach((project) => {
+    const rawLevels = value[project.id];
+
+    normalized[project.id] = Array.isArray(rawLevels)
+      ? rawLevels
+          .map((level) => cleanNumber(level, 0))
+          .filter((level) => level > 0)
+      : [];
+  });
+
+  return normalized;
+}
+
+function advanceCompletedProjects(save: SaveData): SaveData {
+  const nextProjectProgress = { ...save.projectProgress };
+  const nextProjectLevels = { ...save.projectLevels };
+  const nextCompletedProjectIds = save.completedProjectIds.filter(
+    (projectId) => {
+      const project = projectDetails.find((item) => item.id === projectId);
+      if (!project) return false;
+
+      const currentLevel = nextProjectLevels[projectId] ?? 1;
+      const targetXp = getProjectTargetXp(project.targetXp, currentLevel);
+      const currentXp = nextProjectProgress[projectId] ?? 0;
+      const levelAlreadyRewarded =
+        save.completedProjectLevels[projectId]?.includes(currentLevel) ?? false;
+
+      if (currentXp < targetXp || !levelAlreadyRewarded) {
+        return true;
+      }
+
+      nextProjectProgress[projectId] = Math.max(currentXp - targetXp, 0);
+      nextProjectLevels[projectId] = currentLevel + 1;
+
+      return false;
+    }
+  );
+
+  return {
+    ...save,
+    projectProgress: nextProjectProgress,
+    projectLevels: nextProjectLevels,
+    completedProjectIds: nextCompletedProjectIds,
+  };
+}
+
 function createDefaultSave(): SaveData {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
@@ -334,6 +427,8 @@ function createDefaultSave(): SaveData {
     dayHistory: [],
     pillarProgress: createEmptyPillarProgress(),
     projectProgress: createEmptyProjectProgress(),
+    projectLevels: createDefaultProjectLevels(),
+    completedProjectLevels: createEmptyCompletedProjectLevels(),
     currentStreak: 0,
     bestStreak: 0,
     lastCompletedDate: null,
@@ -375,6 +470,18 @@ export function normalizeSaveData(value: unknown): SaveData {
     ? raw.dayHistory.map((day) => normalizeDayArchive(day))
     : [];
 
+  const projectProgress = normalizeProjectProgress(
+    raw.projectProgress,
+    completedMissions,
+    dayHistory
+  );
+
+  const projectLevels = normalizeProjectLevels(raw.projectLevels);
+
+  const completedProjectLevels = normalizeCompletedProjectLevels(
+    raw.completedProjectLevels
+  );
+
   return {
     ...defaultSave,
     ...raw,
@@ -394,11 +501,9 @@ export function normalizeSaveData(value: unknown): SaveData {
     dailyMissions,
     dayHistory,
     pillarProgress: normalizePillarProgress(raw.pillarProgress),
-    projectProgress: normalizeProjectProgress(
-      raw.projectProgress,
-      completedMissions,
-      dayHistory
-    ),
+    projectProgress,
+    projectLevels,
+    completedProjectLevels,
     currentStreak: cleanNumber(raw.currentStreak, 0),
     bestStreak: cleanNumber(raw.bestStreak, 0),
     lastCompletedDate:
@@ -445,27 +550,28 @@ export function useGame() {
       const today = getTodayDate();
 
       if (storedSave.currentDate !== today) {
+        const advancedSave = advanceCompletedProjects(storedSave);
         const yesterday = getPreviousDate(today);
 
         const streakStillAlive =
-          storedSave.lastCompletedDate === yesterday ||
-          storedSave.lastCompletedDate === today;
+          advancedSave.lastCompletedDate === yesterday ||
+          advancedSave.lastCompletedDate === today;
 
         const shouldArchiveDay =
-          storedSave.completedMissions.length > 0 ||
-          storedSave.skippedMissionIds.length > 0 ||
-          storedSave.dailyGlory > 0;
+          advancedSave.completedMissions.length > 0 ||
+          advancedSave.skippedMissionIds.length > 0 ||
+          advancedSave.dailyGlory > 0;
 
-        const historyWithoutDuplicate = storedSave.dayHistory.filter(
-          (day) => day.date !== storedSave.currentDate
+        const historyWithoutDuplicate = advancedSave.dayHistory.filter(
+          (day) => day.date !== advancedSave.currentDate
         );
 
         const nextHistory = shouldArchiveDay
-          ? [createDayArchive(storedSave), ...historyWithoutDuplicate]
+          ? [createDayArchive(advancedSave), ...historyWithoutDuplicate]
           : historyWithoutDuplicate;
 
         const newDaySave: SaveData = {
-          ...storedSave,
+          ...advancedSave,
           currentDate: today,
           missionIndex: 0,
           dailyGlory: 0,
@@ -474,7 +580,7 @@ export function useGame() {
           skippedMissionIds: [],
           dayHistory: nextHistory,
           currentStreak: streakStillAlive
-            ? storedSave.currentStreak
+            ? advancedSave.currentStreak
             : 0,
         };
 
@@ -482,7 +588,7 @@ export function useGame() {
         localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
 
         setMessage(
-          "Une nouvelle journée commence. La précédente rejoint les Archives."
+          "Une nouvelle journée commence. Les Projets terminés montent de niveau."
         );
 
         return;
@@ -630,25 +736,49 @@ export function useGame() {
       (item) => item.id === missionToComplete.projectId
     );
 
+    const currentProjectLevel =
+      save.projectLevels[missionToComplete.projectId] ?? 1;
+
+    const currentProjectTarget = project
+      ? getProjectTargetXp(project.targetXp, currentProjectLevel)
+      : 0;
+
     const previousProjectXp =
       save.projectProgress[missionToComplete.projectId] ?? 0;
 
     const nextProjectXp =
       updatedProjectProgress[missionToComplete.projectId] ?? 0;
 
+    const levelAlreadyRewarded =
+      save.completedProjectLevels[
+        missionToComplete.projectId
+      ]?.includes(currentProjectLevel) ?? false;
+
     const projectJustCompleted =
       !!project &&
-      previousProjectXp < project.targetXp &&
-      nextProjectXp >= project.targetXp &&
-      !save.completedProjectIds.includes(project.id);
+      previousProjectXp < currentProjectTarget &&
+      nextProjectXp >= currentProjectTarget &&
+      !levelAlreadyRewarded;
 
     const projectReward = projectJustCompleted
       ? project.rewardGlory
       : 0;
 
-    const nextCompletedProjectIds = projectJustCompleted && project
-      ? [...save.completedProjectIds, project.id]
-      : save.completedProjectIds;
+    const nextCompletedProjectLevels: CompletedProjectLevels =
+      projectJustCompleted && project
+        ? {
+            ...save.completedProjectLevels,
+            [project.id]: [
+              ...(save.completedProjectLevels[project.id] ?? []),
+              currentProjectLevel,
+            ],
+          }
+        : save.completedProjectLevels;
+
+    const nextCompletedProjectIds =
+      projectJustCompleted && project
+        ? Array.from(new Set([...save.completedProjectIds, project.id]))
+        : save.completedProjectIds;
 
     const streak = calculateStreak(
       nextResolvedCount,
@@ -670,6 +800,7 @@ export function useGame() {
       completedMissionIds: nextCompletedMissionIds,
       pillarProgress: updatedPillarProgress,
       projectProgress: updatedProjectProgress,
+      completedProjectLevels: nextCompletedProjectLevels,
       currentStreak: streak.currentStreak,
       bestStreak: streak.bestStreak,
       lastCompletedDate: streak.lastCompletedDate,
@@ -679,7 +810,7 @@ export function useGame() {
 
     if (projectJustCompleted && project) {
       setMessage(
-        `Projet terminé : ${project.title}. Le Royaume reçoit ${project.rewardGlory} Glory.`
+        `Projet vaincu : ${project.title} niveau ${currentProjectLevel}. Le Royaume reçoit ${project.rewardGlory} Glory.`
       );
       return;
     }
