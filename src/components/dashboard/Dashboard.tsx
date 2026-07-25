@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   bosses,
   chapters,
@@ -16,6 +17,7 @@ import BossPanel from "./BossPanel";
 import KingdomPanel from "./KingdomPanel";
 import PillarsPanel from "./PillarsPanel";
 import JournalPanel from "./JournalPanel";
+import VictoryToast from "./VictoryToast";
 
 export default function Dashboard() {
   const {
@@ -25,6 +27,22 @@ export default function Dashboard() {
     pillarScores,
     accomplirMission,
   } = useGame();
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
+
+  useEffect(() => {
+    if (!message) return;
+
+    setToastMessage(message);
+    setToastVisible(true);
+
+    const timeout = window.setTimeout(() => {
+      setToastVisible(false);
+    }, 3200);
+
+    return () => window.clearTimeout(timeout);
+  }, [message]);
 
   const activeChapter = chapters[0];
   const baseBoss = bosses[0];
@@ -66,6 +84,11 @@ export default function Dashboard() {
 
   return (
     <main className="h-dvh overflow-hidden bg-black p-3 text-sm text-white">
+      <VictoryToast
+        message={toastMessage}
+        visible={toastVisible}
+      />
+
       <div className="mx-auto grid h-full max-w-[1800px] grid-rows-[64px_minmax(0,1fr)] gap-3">
         <TopBar
           heroLevel={heroLevel}
