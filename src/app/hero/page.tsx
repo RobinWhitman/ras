@@ -71,7 +71,7 @@ export default function HeroPage() {
             </p>
 
             <h1 className="text-3xl font-bold">
-              🧍 Héros
+              ⚔ Héros
             </h1>
           </div>
 
@@ -83,30 +83,28 @@ export default function HeroPage() {
           </Link>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          <article className="rounded-xl border border-zinc-800 p-5">
-            <div className="flex aspect-square items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950">
-              <div className="text-center">
-                <p className="text-7xl">🧍</p>
+        <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
+          <article className="overflow-hidden rounded-xl border border-yellow-900/60 bg-zinc-950">
+            <div className="relative flex aspect-[3/4] items-end justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.14),transparent_62%)]">
+              <img
+                src="/assets/hero/robin-pixel.png"
+                alt="Robin, Héros de RAS"
+                className="h-full w-full object-contain object-bottom"
+              />
 
-                <p className="mt-3 text-sm text-zinc-500">
-                  Avatar définitif à venir
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent p-5">
+                <h2 className="text-3xl font-bold">
+                  Robin
+                </h2>
+
+                <p className="mt-1 font-bold text-yellow-400">
+                  {heroTitle}
+                </p>
+
+                <p className="mt-2 text-sm text-zinc-300">
+                  Niveau {heroLevel}
                 </p>
               </div>
-            </div>
-
-            <div className="mt-5 text-center">
-              <h2 className="text-3xl font-bold">
-                Robin
-              </h2>
-
-              <p className="mt-1 font-bold text-yellow-400">
-                {heroTitle}
-              </p>
-
-              <p className="mt-3 text-zinc-400">
-                Niveau {heroLevel}
-              </p>
             </div>
           </article>
 
