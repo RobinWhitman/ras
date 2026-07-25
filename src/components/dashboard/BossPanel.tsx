@@ -7,12 +7,14 @@ import type { Boss } from "@/types/game";
 type BossPanelProps = {
   boss: Boss;
   bossHp: number;
+  bossLevel: number;
   bossDefeated: boolean;
 };
 
 export default function BossPanel({
   boss,
   bossHp,
+  bossLevel,
   bossDefeated,
 }: BossPanelProps) {
   const phase = getBossPhase(boss, bossHp);
@@ -26,7 +28,7 @@ export default function BossPanel({
           </p>
 
           <p className="text-xs text-yellow-400">
-            {phase.name}
+            Niveau {bossLevel} · {phase.name}
           </p>
         </div>
 
@@ -53,7 +55,7 @@ export default function BossPanel({
 
       {bossDefeated && (
         <p className="mt-2 font-bold text-yellow-400">
-          🏆 Boss vaincu
+          🏆 Niveau vaincu
         </p>
       )}
 

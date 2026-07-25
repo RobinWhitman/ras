@@ -97,6 +97,10 @@ export type ProjectLevels = Record<string, number>;
 
 export type CompletedProjectLevels = Record<string, number[]>;
 
+export type BossLevels = Record<string, number>;
+
+export type CompletedBossLevels = Record<string, number[]>;
+
 export interface SaveData {
   schemaVersion: number;
   currentDate: string;
@@ -125,5 +129,8 @@ export interface SaveData {
 
   missionConfigVersion: number;
   defeatedBossIds: string[];
+  bossLevels: BossLevels;
+  completedBossLevels: CompletedBossLevels;
+
   completedProjectIds: string[];
 }

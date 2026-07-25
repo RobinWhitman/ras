@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { bosses } from "@/data/game";
-import { useGame } from "@/hooks/useGame";
+import {
+  getBossTargetHp,
+  useGame,
+} from "@/hooks/useGame";
 import {
   getBossHpPercent,
   getBossPhase,
@@ -10,7 +13,12 @@ import {
 
 export default function BossPage() {
   const { save } = useGame();
-  const boss = bosses[0];
+  const baseBoss = bosses[0];
+  const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
+  const boss = {
+    ...baseBoss,
+    maxHp: getBossTargetHp(baseBoss.maxHp, bossLevel),
+  };
 
   const hpPercent = getBossHpPercent(
     save.bossHp,
@@ -23,7 +31,10 @@ export default function BossPage() {
   );
 
   const defeated =
-    save.defeatedBossIds.includes(boss.id);
+    save.defeatedBossIds.includes(baseBoss.id);
+
+  const defeatedLevels =
+    save.completedBossLevels[baseBoss.id]?.length ?? 0;
 
   return (
     <main className="min-h-screen bg-black p-6 text-white">
@@ -51,7 +62,7 @@ export default function BossPage() {
           <div className="flex flex-col justify-between gap-5 md:flex-row">
             <div>
               <p className="text-sm uppercase tracking-widest text-red-400">
-                {currentPhase.name}
+                Niveau {bossLevel} · {currentPhase.name}
               </p>
 
               <h2 className="mt-2 text-4xl font-bold">
@@ -78,6 +89,14 @@ export default function BossPage() {
 
               <p className="text-xl font-bold">
                 {boss.ability}
+              </p>
+
+              <p className="mt-4 text-sm text-zinc-500">
+                Niveaux vaincus
+              </p>
+
+              <p className="text-xl font-bold text-yellow-400">
+                {defeatedLevels}
               </p>
             </div>
           </div>
@@ -119,7 +138,7 @@ export default function BossPage() {
 
           <div className="mt-6 rounded-xl border border-yellow-900 p-4">
             <p className="text-xs uppercase tracking-wider text-zinc-500">
-              Récompense
+              Récompense du niveau
             </p>
 
             <p className="mt-1 text-2xl font-bold text-yellow-400">
@@ -127,18 +146,18 @@ export default function BossPage() {
             </p>
 
             <p className="mt-2 text-zinc-400">
-              Cette récompense n’est accordée qu’une fois.
+              Cette récompense est accordée une seule fois par niveau vaincu.
             </p>
           </div>
 
           {defeated && (
             <div className="mt-6 rounded-xl border border-yellow-500 bg-yellow-500/10 p-5">
               <p className="text-2xl font-bold text-yellow-400">
-                🏆 Boss vaincu
+                🏆 Niveau vaincu
               </p>
 
               <p className="mt-2 text-zinc-300">
-                Le Chaos Quotidien a été repoussé et sa récompense a rejoint ta Légende.
+                Le Boss passera au niveau {bossLevel + 1} au prochain changement de jour.
               </p>
             </div>
           )}

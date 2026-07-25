@@ -7,7 +7,7 @@ import {
   projects,
   rituals,
 } from "@/data/game";
-import { useGame } from "@/hooks/useGame";
+import { getBossTargetHp, useGame } from "@/hooks/useGame";
 import Card from "@/components/Card";
 import TopBar from "./TopBar";
 import HeroPanel from "./HeroPanel";
@@ -27,7 +27,12 @@ export default function Dashboard() {
   } = useGame();
 
   const activeChapter = chapters[0];
-  const activeBoss = bosses[0];
+  const baseBoss = bosses[0];
+  const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
+  const activeBoss = {
+    ...baseBoss,
+    maxHp: getBossTargetHp(baseBoss.maxHp, bossLevel),
+  };
 
   const activeProject = currentMission
     ? projects.find(
@@ -41,7 +46,7 @@ export default function Dashboard() {
       )
     : rituals[0];
 
-  const bossDefeated = save.bossHp <= 0;
+  const bossDefeated = save.defeatedBossIds.includes(baseBoss.id);
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
 
@@ -71,7 +76,6 @@ export default function Dashboard() {
         />
 
         <div className="grid min-h-0 grid-cols-12 grid-rows-[200px_220px_minmax(0,1fr)] gap-3">
-          {/* HÉROS — gauche, deux premières rangées */}
           <div className="col-span-3 row-span-2 min-h-0">
             <HeroPanel
               heroLevel={heroLevel}
@@ -79,61 +83,55 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* CONSEIL — centre haut */}
           <div className="col-span-6 min-h-0">
             <MorningPanel
               kingdomState={kingdom.state}
               dayState={dayState}
               chapterTitle={activeChapter.title}
-              bossName={activeBoss.name}
+              bossName={`${activeBoss.name} Niv. ${bossLevel}`}
               currentMission={currentMission}
               onAccomplish={() => accomplirMission()}
             />
           </div>
 
-          {/* ROYAUME — bloc orange, uniquement en haut à droite */}
           <div className="col-span-3 min-h-0">
             <KingdomPanel pillarScores={pillarScores} />
           </div>
 
-          {/* PILIERS — centre milieu gauche */}
           <div className="col-span-3 min-h-0">
             <PillarsPanel pillarScores={pillarScores} />
           </div>
 
-          {/* BOSS — centre milieu droit */}
           <div className="col-span-3 min-h-0">
             <BossPanel
               boss={activeBoss}
               bossHp={save.bossHp}
+              bossLevel={bossLevel}
               bossDefeated={bossDefeated}
             />
           </div>
 
-          {/* JOURNAL — bloc rouge, deux rangées à droite */}
           <div className="col-span-3 row-span-2 min-h-0">
             <JournalPanel
               completedMissions={save.completedMissions}
             />
           </div>
 
-          {/* COMPAGNON — bas gauche */}
           <div className="col-span-3 min-h-0">
             <Card title="🐈‍⬛ LOKI">
-  <div className="flex h-full flex-col">
-    <p className="flex-1">{message}</p>
+              <div className="flex h-full flex-col">
+                <p className="flex-1">{message}</p>
 
-    <a
-      href="/companion"
-      className="mt-3 rounded-lg border border-green-900 px-3 py-2 text-center text-xs font-bold text-green-400 transition hover:border-green-500"
-    >
-      Consulter LOKI →
-    </a>
-  </div>
-</Card>
+                <a
+                  href="/companion"
+                  className="mt-3 rounded-lg border border-green-900 px-3 py-2 text-center text-xs font-bold text-green-400 transition hover:border-green-500"
+                >
+                  Consulter LOKI →
+                </a>
+              </div>
+            </Card>
           </div>
 
-          {/* CHAPITRE — bas centre */}
           <div className="col-span-6 min-h-0">
             <Card title="⚔ Chapitre actif">
               <div className="grid grid-cols-3 gap-4">

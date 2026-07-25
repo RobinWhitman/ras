@@ -111,12 +111,29 @@ Changements validés :
 - vérification de `/missions` et `/projects`.
 
 Dernier sprint confirmé : Macro Sprint 16B — Projets visibles et récompenses automatiques.
+## Macro Sprint 18 — Niveaux de Projets
+
+Statut : appliqué et testé.
+
+Changements validés :
+
+- ajout de `projectLevels` dans `SaveData` ;
+- ajout de `completedProjectLevels` dans `SaveData` ;
+- chaque Projet possède désormais un niveau courant ;
+- l’objectif XP d’un Projet augmente avec son niveau ;
+- un Projet vaincu verse sa récompense de Glory une seule fois par niveau ;
+- au changement de jour, un Projet vaincu passe au niveau suivant ;
+- la progression du niveau courant repart avec le reliquat éventuel ou 0 ;
+- `/projects` affiche le niveau, l’objectif XP, les niveaux vaincus et l’état de récompense ;
+- vérification de la persistance après rechargement et simulation de lendemain.
+
+Dernier sprint confirmé : Macro Sprint 18 — Niveaux de Projets.
 
 ## Sprint en cours / prochain
 
-**Macro Sprint 17 — Récompense Projet attribuée une seule fois**.
+**Macro Sprint 19 — Boss à niveaux / rotation après victoire**.
 
-Objectif : lorsqu’un Projet atteint son objectif d’XP, sa récompense de Glory est versée une seule fois et reste persistante.
+Objectif : appliquer au Boss une logique comparable aux Projets : lorsqu’il est vaincu, la récompense est versée une fois, puis le lendemain un Boss de niveau supérieur ou un nouveau Boss prend le relais avec davantage de PV.
 
 ## Commandes habituelles
 
@@ -126,3 +143,16 @@ npm run dev
 git add .
 git commit -m "..."
 git push
+
+## Étapes suivantes recommandées
+
+1. Boss à niveaux / rotation après victoire.
+2. Plusieurs Boss et sélection active.
+3. Chapitres à progression séquentielle.
+4. Récompense Chapitre attribuée une seule fois.
+5. Clarifier les jours sans Mission et leur effet sur la Série.
+6. Conserver dans les Archives la configuration exacte du jour.
+7. Notifications de Succès et level-up.
+8. Design final et assets.
+9. Tests automatisés.
+10. Sauvegarde cloud éventuelle.

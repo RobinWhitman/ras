@@ -10,6 +10,8 @@ import {
 } from "@/data/game";
 import { projectDetails } from "@/data/projects";
 import type {
+  BossLevels,
+  CompletedBossLevels,
   CompletedMission,
   CompletedProjectLevels,
   DayArchive,
@@ -23,7 +25,7 @@ import type {
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v9";
-const SAVE_SCHEMA_VERSION = 5;
+const SAVE_SCHEMA_VERSION = 6;
 const CONFIG_VERSION = 4;
 const activeBoss = bosses[0];
 
@@ -70,6 +72,10 @@ export function getMissionsForDate(
 
 export function getProjectTargetXp(baseTargetXp: number, level: number) {
   return Math.round(baseTargetXp * (1 + (level - 1) * 0.35));
+}
+
+export function getBossTargetHp(baseMaxHp: number, level: number) {
+  return Math.round(baseMaxHp * (1 + (level - 1) * 0.4));
 }
 
 function isPillar(value: unknown): value is Pillar {
@@ -126,6 +132,20 @@ function createDefaultProjectLevels(): ProjectLevels {
 function createEmptyCompletedProjectLevels(): CompletedProjectLevels {
   return projectDetails.reduce<CompletedProjectLevels>((levels, project) => {
     levels[project.id] = [];
+    return levels;
+  }, {});
+}
+
+function createDefaultBossLevels(): BossLevels {
+  return bosses.reduce<BossLevels>((levels, boss) => {
+    levels[boss.id] = 1;
+    return levels;
+  }, {});
+}
+
+function createEmptyCompletedBossLevels(): CompletedBossLevels {
+  return bosses.reduce<CompletedBossLevels>((levels, boss) => {
+    levels[boss.id] = [];
     return levels;
   }, {});
 }
@@ -339,13 +359,11 @@ function normalizeProjectProgress(
 }
 
 function normalizeProjectLevels(value: ProjectLevels | undefined): ProjectLevels {
-  const defaults = createDefaultProjectLevels();
+  const normalized = createDefaultProjectLevels();
 
   if (!value || typeof value !== "object") {
-    return defaults;
+    return normalized;
   }
-
-  const normalized = createDefaultProjectLevels();
 
   projectDetails.forEach((project) => {
     normalized[project.id] = Math.max(1, cleanNumber(value[project.id], 1));
@@ -357,18 +375,52 @@ function normalizeProjectLevels(value: ProjectLevels | undefined): ProjectLevels
 function normalizeCompletedProjectLevels(
   value: CompletedProjectLevels | undefined
 ): CompletedProjectLevels {
-  const defaults = createEmptyCompletedProjectLevels();
+  const normalized = createEmptyCompletedProjectLevels();
 
   if (!value || typeof value !== "object") {
-    return defaults;
+    return normalized;
   }
-
-  const normalized = createEmptyCompletedProjectLevels();
 
   projectDetails.forEach((project) => {
     const rawLevels = value[project.id];
 
     normalized[project.id] = Array.isArray(rawLevels)
+      ? rawLevels
+          .map((level) => cleanNumber(level, 0))
+          .filter((level) => level > 0)
+      : [];
+  });
+
+  return normalized;
+}
+
+function normalizeBossLevels(value: BossLevels | undefined): BossLevels {
+  const normalized = createDefaultBossLevels();
+
+  if (!value || typeof value !== "object") {
+    return normalized;
+  }
+
+  bosses.forEach((boss) => {
+    normalized[boss.id] = Math.max(1, cleanNumber(value[boss.id], 1));
+  });
+
+  return normalized;
+}
+
+function normalizeCompletedBossLevels(
+  value: CompletedBossLevels | undefined
+): CompletedBossLevels {
+  const normalized = createEmptyCompletedBossLevels();
+
+  if (!value || typeof value !== "object") {
+    return normalized;
+  }
+
+  bosses.forEach((boss) => {
+    const rawLevels = value[boss.id];
+
+    normalized[boss.id] = Array.isArray(rawLevels)
       ? rawLevels
           .map((level) => cleanNumber(level, 0))
           .filter((level) => level > 0)
@@ -411,6 +463,37 @@ function advanceCompletedProjects(save: SaveData): SaveData {
   };
 }
 
+function advanceCompletedBosses(save: SaveData): SaveData {
+  const nextBossLevels = { ...save.bossLevels };
+  let nextBossHp = save.bossHp;
+
+  const nextDefeatedBossIds = save.defeatedBossIds.filter((bossId) => {
+    const boss = bosses.find((item) => item.id === bossId);
+    if (!boss) return false;
+
+    const currentLevel = nextBossLevels[bossId] ?? 1;
+    const levelAlreadyRewarded =
+      save.completedBossLevels[bossId]?.includes(currentLevel) ?? false;
+
+    if (!levelAlreadyRewarded || bossId !== activeBoss.id) {
+      return true;
+    }
+
+    const nextLevel = currentLevel + 1;
+    nextBossLevels[bossId] = nextLevel;
+    nextBossHp = getBossTargetHp(boss.maxHp, nextLevel);
+
+    return false;
+  });
+
+  return {
+    ...save,
+    bossHp: nextBossHp,
+    bossLevels: nextBossLevels,
+    defeatedBossIds: nextDefeatedBossIds,
+  };
+}
+
 function createDefaultSave(): SaveData {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
@@ -418,7 +501,7 @@ function createDefaultSave(): SaveData {
     missionIndex: 0,
     xp: 0,
     glory: 0,
-    bossHp: activeBoss.maxHp,
+    bossHp: getBossTargetHp(activeBoss.maxHp, 1),
     dailyGlory: 0,
     completedMissions: [],
     completedMissionIds: [],
@@ -434,6 +517,8 @@ function createDefaultSave(): SaveData {
     lastCompletedDate: null,
     missionConfigVersion: CONFIG_VERSION,
     defeatedBossIds: [],
+    bossLevels: createDefaultBossLevels(),
+    completedBossLevels: createEmptyCompletedBossLevels(),
     completedProjectIds: [],
   };
 }
@@ -482,6 +567,14 @@ export function normalizeSaveData(value: unknown): SaveData {
     raw.completedProjectLevels
   );
 
+  const bossLevels = normalizeBossLevels(raw.bossLevels);
+  const completedBossLevels = normalizeCompletedBossLevels(
+    raw.completedBossLevels
+  );
+
+  const activeBossLevel = bossLevels[activeBoss.id] ?? 1;
+  const activeBossMaxHp = getBossTargetHp(activeBoss.maxHp, activeBossLevel);
+
   return {
     ...defaultSave,
     ...raw,
@@ -493,7 +586,7 @@ export function normalizeSaveData(value: unknown): SaveData {
     missionIndex: cleanNumber(raw.missionIndex, 0),
     xp: cleanNumber(raw.xp, 0),
     glory: cleanNumber(raw.glory, 0),
-    bossHp: cleanNumber(raw.bossHp, activeBoss.maxHp),
+    bossHp: Math.min(cleanNumber(raw.bossHp, activeBossMaxHp), activeBossMaxHp),
     dailyGlory: cleanNumber(raw.dailyGlory, 0),
     completedMissions,
     completedMissionIds,
@@ -512,6 +605,8 @@ export function normalizeSaveData(value: unknown): SaveData {
         : null,
     missionConfigVersion: CONFIG_VERSION,
     defeatedBossIds: cleanStringArray(raw.defeatedBossIds),
+    bossLevels,
+    completedBossLevels,
     completedProjectIds: cleanStringArray(raw.completedProjectIds),
   };
 }
@@ -550,7 +645,8 @@ export function useGame() {
       const today = getTodayDate();
 
       if (storedSave.currentDate !== today) {
-        const advancedSave = advanceCompletedProjects(storedSave);
+        const advancedProjectsSave = advanceCompletedProjects(storedSave);
+        const advancedSave = advanceCompletedBosses(advancedProjectsSave);
         const yesterday = getPreviousDate(today);
 
         const streakStillAlive =
@@ -588,7 +684,7 @@ export function useGame() {
         localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
 
         setMessage(
-          "Une nouvelle journée commence. Les Projets terminés montent de niveau."
+          "Une nouvelle journée commence. Les Projets et Boss vaincus montent de niveau."
         );
 
         return;
@@ -716,18 +812,36 @@ export function useGame() {
 
     const dayCompleted = nextResolvedCount >= activeMissions.length;
 
+    const activeBossLevel = save.bossLevels[activeBoss.id] ?? 1;
+    const activeBossMaxHp = getBossTargetHp(activeBoss.maxHp, activeBossLevel);
+
     const nextBossHp = Math.max(
       save.bossHp - missionToComplete.damage,
       0
     );
 
+    const levelAlreadyRewarded =
+      save.completedBossLevels[activeBoss.id]?.includes(activeBossLevel) ??
+      false;
+
     const bossJustDefeated =
       save.bossHp > 0 &&
       nextBossHp === 0 &&
-      !save.defeatedBossIds.includes(activeBoss.id);
+      !levelAlreadyRewarded;
+
+    const nextCompletedBossLevels: CompletedBossLevels =
+      bossJustDefeated
+        ? {
+            ...save.completedBossLevels,
+            [activeBoss.id]: [
+              ...(save.completedBossLevels[activeBoss.id] ?? []),
+              activeBossLevel,
+            ],
+          }
+        : save.completedBossLevels;
 
     const nextDefeatedBossIds = bossJustDefeated
-      ? [...save.defeatedBossIds, activeBoss.id]
+      ? Array.from(new Set([...save.defeatedBossIds, activeBoss.id]))
       : save.defeatedBossIds;
 
     const bossReward = bossJustDefeated ? activeBoss.rewardGlory : 0;
@@ -749,7 +863,7 @@ export function useGame() {
     const nextProjectXp =
       updatedProjectProgress[missionToComplete.projectId] ?? 0;
 
-    const levelAlreadyRewarded =
+    const projectLevelAlreadyRewarded =
       save.completedProjectLevels[
         missionToComplete.projectId
       ]?.includes(currentProjectLevel) ?? false;
@@ -758,7 +872,7 @@ export function useGame() {
       !!project &&
       previousProjectXp < currentProjectTarget &&
       nextProjectXp >= currentProjectTarget &&
-      !levelAlreadyRewarded;
+      !projectLevelAlreadyRewarded;
 
     const projectReward = projectJustCompleted
       ? project.rewardGlory
@@ -795,7 +909,7 @@ export function useGame() {
         bossReward +
         projectReward,
       dailyGlory: save.dailyGlory + missionToComplete.glory,
-      bossHp: nextBossHp,
+      bossHp: Math.min(nextBossHp, activeBossMaxHp),
       completedMissions: nextCompletedMissions,
       completedMissionIds: nextCompletedMissionIds,
       pillarProgress: updatedPillarProgress,
@@ -805,19 +919,20 @@ export function useGame() {
       bestStreak: streak.bestStreak,
       lastCompletedDate: streak.lastCompletedDate,
       defeatedBossIds: nextDefeatedBossIds,
+      completedBossLevels: nextCompletedBossLevels,
       completedProjectIds: nextCompletedProjectIds,
     });
 
-    if (projectJustCompleted && project) {
+    if (bossJustDefeated) {
       setMessage(
-        `Projet vaincu : ${project.title} niveau ${currentProjectLevel}. Le Royaume reçoit ${project.rewardGlory} Glory.`
+        `Boss vaincu : ${activeBoss.name} niveau ${activeBossLevel}. Le Royaume reçoit ${activeBoss.rewardGlory} Glory.`
       );
       return;
     }
 
-    if (bossJustDefeated) {
+    if (projectJustCompleted && project) {
       setMessage(
-        `Le Boss ${activeBoss.name} est vaincu. Le Royaume reçoit ${activeBoss.rewardGlory} Glory.`
+        `Projet vaincu : ${project.title} niveau ${currentProjectLevel}. Le Royaume reçoit ${project.rewardGlory} Glory.`
       );
       return;
     }
