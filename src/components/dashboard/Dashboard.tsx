@@ -65,90 +65,94 @@ export default function Dashboard() {
 
   const progressTrackingReady = useRef(false);
 
-  useEffect(() => {
-    if (!message) return;
-
-    setToastMessage(message);
-    setToastVisible(true);
-
-    const timeout = window.setTimeout(() => {
-      setToastVisible(false);
-    }, 3200);
-
-    return () => window.clearTimeout(timeout);
-  }, [message]);
+  const progressEventKey = [
+    save.xp,
+    save.glory,
+    save.bossHp,
+    save.completedMissionIds.length,
+    save.skippedMissionIds.length,
+  ].join(":");
 
   useEffect(() => {
-    const currentAchievements =
-      unlockedAchievementSignature
-        ? unlockedAchievementSignature
-            .split("|")
-            .map((entry) => {
-              const [id, ...titleParts] =
-                entry.split("::");
+    const showTimeout = window.setTimeout(() => {
+      const currentAchievements =
+        unlockedAchievementSignature
+          ? unlockedAchievementSignature
+              .split("|")
+              .map((entry) => {
+                const [id, ...titleParts] =
+                  entry.split("::");
 
-              return {
-                id,
-                title: titleParts.join("::"),
-              };
-            })
-        : [];
+                return {
+                  id,
+                  title: titleParts.join("::"),
+                };
+              })
+          : [];
 
-    const currentAchievementIds =
-      currentAchievements.map(
-        (achievement) => achievement.id
-      );
+      const currentAchievementIds =
+        currentAchievements.map(
+          (achievement) => achievement.id
+        );
 
-    if (
-      !progressTrackingReady.current ||
-      message === companion.start
-    ) {
+      const notifications: string[] = [];
+
+      if (
+        progressTrackingReady.current &&
+        message !== companion.start &&
+        heroLevel > previousHeroLevel.current
+      ) {
+        notifications.push(
+          `Niveau ${heroLevel} atteint`
+        );
+      }
+
+      if (
+        progressTrackingReady.current &&
+        message !== companion.start
+      ) {
+        currentAchievements
+          .filter(
+            (achievement) =>
+              !previousAchievementIds.current.includes(
+                achievement.id
+              )
+          )
+          .forEach((achievement) => {
+            notifications.push(
+              `Succès débloqué : ${achievement.title}`
+            );
+          });
+      }
+
       progressTrackingReady.current = true;
       previousHeroLevel.current = heroLevel;
       previousAchievementIds.current =
         currentAchievementIds;
 
-      return;
-    }
+      if (!message) return;
 
-    const notifications: string[] = [];
-
-    if (heroLevel > previousHeroLevel.current) {
-      notifications.push(
-        `Niveau ${heroLevel} atteint`
-      );
-    }
-
-    const newlyUnlockedAchievements =
-      currentAchievements.filter(
-        (achievement) =>
-          !previousAchievementIds.current.includes(
-            achievement.id
-          )
+      setToastMessage(
+        notifications.length > 0
+          ? `${message} · ${notifications.join(" · ")}`
+          : message
       );
 
-    newlyUnlockedAchievements.forEach(
-      (achievement) => {
-        notifications.push(
-          `Succès débloqué : ${achievement.title}`
-        );
-      }
-    );
+      setToastVisible(true);
+    }, 80);
 
-    previousHeroLevel.current = heroLevel;
-    previousAchievementIds.current =
-      currentAchievementIds;
+    const hideTimeout = window.setTimeout(() => {
+      setToastVisible(false);
+    }, 3600);
 
-    if (notifications.length === 0) return;
-
-    setToastMessage(
-      `${message} ${notifications.join(" · ")}`
-    );
-
-    setToastVisible(true);
+    return () => {
+      window.clearTimeout(showTimeout);
+      window.clearTimeout(hideTimeout);
+    };
   }, [
     heroLevel,
     message,
+    progressEventKey,
     unlockedAchievementSignature,
   ]);
 
