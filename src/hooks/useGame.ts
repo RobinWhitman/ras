@@ -25,7 +25,7 @@ import type {
 } from "@/types/game";
 
 const SAVE_KEY = "ras-save-v9";
-const SAVE_SCHEMA_VERSION = 6;
+const SAVE_SCHEMA_VERSION = 7;
 const CONFIG_VERSION = 4;
 const activeBoss = bosses[0];
 
@@ -52,6 +52,7 @@ function getTodayDate() {
 function getPreviousDate(date: string) {
   const previousDate = new Date(`${date}T12:00:00`);
   previousDate.setDate(previousDate.getDate() - 1);
+
   return previousDate.toLocaleDateString("fr-CA");
 }
 
@@ -70,12 +71,22 @@ export function getMissionsForDate(
   );
 }
 
-export function getProjectTargetXp(baseTargetXp: number, level: number) {
-  return Math.round(baseTargetXp * (1 + (level - 1) * 0.35));
+export function getProjectTargetXp(
+  baseTargetXp: number,
+  level: number
+) {
+  return Math.round(
+    baseTargetXp * (1 + (level - 1) * 0.35)
+  );
 }
 
-export function getBossTargetHp(baseMaxHp: number, level: number) {
-  return Math.round(baseMaxHp * (1 + (level - 1) * 0.4));
+export function getBossTargetHp(
+  baseMaxHp: number,
+  level: number
+) {
+  return Math.round(
+    baseMaxHp * (1 + (level - 1) * 0.4)
+  );
 }
 
 function isPillar(value: unknown): value is Pillar {
@@ -91,15 +102,22 @@ function isWeekDay(value: unknown): value is WeekDay {
   );
 }
 
-function cleanNumber(value: unknown, fallback: number) {
-  return typeof value === "number" && Number.isFinite(value)
+function cleanNumber(
+  value: unknown,
+  fallback: number
+) {
+  return typeof value === "number" &&
+    Number.isFinite(value)
     ? Math.max(0, Math.round(value))
     : fallback;
 }
 
 function cleanStringArray(value: unknown) {
   return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
+    ? value.filter(
+        (item): item is string =>
+          typeof item === "string"
+      )
     : [];
 }
 
@@ -116,38 +134,53 @@ function createEmptyPillarProgress(): PillarProgress {
 }
 
 function createEmptyProjectProgress(): ProjectProgress {
-  return projectDetails.reduce<ProjectProgress>((progress, project) => {
-    progress[project.id] = 0;
-    return progress;
-  }, {});
+  return projectDetails.reduce<ProjectProgress>(
+    (progress, project) => {
+      progress[project.id] = 0;
+      return progress;
+    },
+    {}
+  );
 }
 
 function createDefaultProjectLevels(): ProjectLevels {
-  return projectDetails.reduce<ProjectLevels>((levels, project) => {
-    levels[project.id] = 1;
-    return levels;
-  }, {});
+  return projectDetails.reduce<ProjectLevels>(
+    (levels, project) => {
+      levels[project.id] = 1;
+      return levels;
+    },
+    {}
+  );
 }
 
 function createEmptyCompletedProjectLevels(): CompletedProjectLevels {
-  return projectDetails.reduce<CompletedProjectLevels>((levels, project) => {
-    levels[project.id] = [];
-    return levels;
-  }, {});
+  return projectDetails.reduce<CompletedProjectLevels>(
+    (levels, project) => {
+      levels[project.id] = [];
+      return levels;
+    },
+    {}
+  );
 }
 
 function createDefaultBossLevels(): BossLevels {
-  return bosses.reduce<BossLevels>((levels, boss) => {
-    levels[boss.id] = 1;
-    return levels;
-  }, {});
+  return bosses.reduce<BossLevels>(
+    (levels, boss) => {
+      levels[boss.id] = 1;
+      return levels;
+    },
+    {}
+  );
 }
 
 function createEmptyCompletedBossLevels(): CompletedBossLevels {
-  return bosses.reduce<CompletedBossLevels>((levels, boss) => {
-    levels[boss.id] = [];
-    return levels;
-  }, {});
+  return bosses.reduce<CompletedBossLevels>(
+    (levels, boss) => {
+      levels[boss.id] = [];
+      return levels;
+    },
+    {}
+  );
 }
 
 function normalizeCompletedMission(
@@ -155,18 +188,27 @@ function normalizeCompletedMission(
 ): CompletedMission {
   return {
     id:
-      typeof mission.id === "string" && mission.id.trim()
+      typeof mission.id === "string" &&
+      mission.id.trim()
         ? mission.id
         : `completed-${Date.now()}`,
+
     title:
-      typeof mission.title === "string" && mission.title.trim()
+      typeof mission.title === "string" &&
+      mission.title.trim()
         ? mission.title.trim()
         : "Mission accomplie",
-    pillar: isPillar(mission.pillar) ? mission.pillar : "Discipline",
+
+    pillar: isPillar(mission.pillar)
+      ? mission.pillar
+      : "Discipline",
+
     projectId:
-      typeof mission.projectId === "string" && mission.projectId.trim()
+      typeof mission.projectId === "string" &&
+      mission.projectId.trim()
         ? mission.projectId
         : "project-ras-v1",
+
     xp: cleanNumber(mission.xp, 0),
     glory: cleanNumber(mission.glory, 0),
   };
@@ -184,30 +226,41 @@ function normalizeMission(
 
   return {
     id:
-      typeof mission.id === "string" && mission.id.trim()
+      typeof mission.id === "string" &&
+      mission.id.trim()
         ? mission.id
         : `mission-${Date.now()}-${index}`,
+
     chapterId:
       typeof mission.chapterId === "string"
         ? mission.chapterId
         : "chapter-ras",
+
     bossId:
       typeof mission.bossId === "string"
         ? mission.bossId
         : "boss-chaos",
+
     projectId:
       typeof mission.projectId === "string"
         ? mission.projectId
         : "project-ras-v1",
+
     ritualId:
       typeof mission.ritualId === "string"
         ? mission.ritualId
         : "ritual-aube",
+
     title:
-      typeof mission.title === "string" && mission.title.trim()
+      typeof mission.title === "string" &&
+      mission.title.trim()
         ? mission.title.trim()
         : "Mission sans titre",
-    pillar: isPillar(mission.pillar) ? mission.pillar : "Discipline",
+
+    pillar: isPillar(mission.pillar)
+      ? mission.pillar
+      : "Discipline",
+
     xp: cleanNumber(mission.xp, 10),
     glory: cleanNumber(mission.glory, 5),
     damage: cleanNumber(mission.damage, 5),
@@ -216,8 +269,12 @@ function normalizeMission(
 }
 
 function cloneDefaultMissions(): Mission[] {
-  return defaultMissions.map((mission, index) =>
-    normalizeMission({ ...mission }, index)
+  return defaultMissions.map(
+    (mission, index) =>
+      normalizeMission(
+        { ...mission },
+        index
+      )
   );
 }
 
@@ -225,32 +282,57 @@ function migrateMissions(
   existingMissions: Partial<Mission>[],
   version: number
 ): Mission[] {
-  const migratedMissions = existingMissions.map((mission, index) =>
-    normalizeMission(mission, index)
-  );
+  const migratedMissions =
+    existingMissions.map(
+      (mission, index) =>
+        normalizeMission(mission, index)
+    );
 
   if (version < 2) {
-    const hasDayMissions = migratedMissions.some(
-      (mission) => mission.ritualId === "ritual-jour"
-    );
+    const hasDayMissions =
+      migratedMissions.some(
+        (mission) =>
+          mission.ritualId === "ritual-jour"
+      );
 
-    const hasDuskMissions = migratedMissions.some(
-      (mission) => mission.ritualId === "ritual-crepuscule"
-    );
+    const hasDuskMissions =
+      migratedMissions.some(
+        (mission) =>
+          mission.ritualId ===
+          "ritual-crepuscule"
+      );
 
     if (!hasDayMissions) {
       migratedMissions.push(
         ...defaultMissions
-          .filter((mission) => mission.ritualId === "ritual-jour")
-          .map((mission, index) => normalizeMission({ ...mission }, index))
+          .filter(
+            (mission) =>
+              mission.ritualId ===
+              "ritual-jour"
+          )
+          .map((mission, index) =>
+            normalizeMission(
+              { ...mission },
+              index
+            )
+          )
       );
     }
 
     if (!hasDuskMissions) {
       migratedMissions.push(
         ...defaultMissions
-          .filter((mission) => mission.ritualId === "ritual-crepuscule")
-          .map((mission, index) => normalizeMission({ ...mission }, index))
+          .filter(
+            (mission) =>
+              mission.ritualId ===
+              "ritual-crepuscule"
+          )
+          .map((mission, index) =>
+            normalizeMission(
+              { ...mission },
+              index
+            )
+          )
       );
     }
   }
@@ -262,52 +344,119 @@ function migrateMissions(
   );
 }
 
-function normalizeDayArchive(day: Partial<DayArchive>): DayArchive {
-  const completedMissions = Array.isArray(day.completedMissions)
-    ? day.completedMissions.map((mission) =>
-        normalizeCompletedMission(mission)
-      )
-    : [];
+function normalizeDayArchive(
+  day: Partial<DayArchive>
+): DayArchive {
+  const completedMissions =
+    Array.isArray(day.completedMissions)
+      ? day.completedMissions.map(
+          (mission) =>
+            normalizeCompletedMission(mission)
+        )
+      : [];
+
+  const plannedMissions =
+    Array.isArray(day.plannedMissions)
+      ? day.plannedMissions.map(
+          (mission, index) =>
+            normalizeMission(
+              mission,
+              index
+            )
+        )
+      : completedMissions.map(
+          (mission, index) =>
+            normalizeMission(
+              {
+                id: mission.id,
+                title: mission.title,
+                pillar: mission.pillar,
+                projectId:
+                  mission.projectId,
+                xp: mission.xp,
+                glory: mission.glory,
+                damage: 0,
+              },
+              index
+            )
+        );
+
+  const skippedMissionIds =
+    cleanStringArray(
+      day.skippedMissionIds
+    );
 
   return {
     date:
-      typeof day.date === "string" && day.date
+      typeof day.date === "string" &&
+      day.date
         ? day.date
         : getTodayDate(),
+
     xpGained: cleanNumber(
       day.xpGained,
       completedMissions.reduce(
-        (total, mission) => total + mission.xp,
+        (total, mission) =>
+          total + mission.xp,
         0
       )
     ),
-    gloryGained: cleanNumber(day.gloryGained, 0),
+
+    gloryGained: cleanNumber(
+      day.gloryGained,
+      0
+    ),
+
     completedMissions,
-    skippedMissionCount: cleanNumber(day.skippedMissionCount, 0),
+
+    skippedMissionIds,
+
+    skippedMissionCount: cleanNumber(
+      day.skippedMissionCount,
+      skippedMissionIds.length
+    ),
+
     plannedMissionCount: cleanNumber(
       day.plannedMissionCount,
-      completedMissions.length
+      plannedMissions.length
     ),
+
+    plannedMissions,
   };
 }
 
 function normalizePillarProgress(
-  value: Partial<PillarProgress> | undefined
+  value:
+    | Partial<PillarProgress>
+    | undefined
 ): PillarProgress {
-  const empty = createEmptyPillarProgress();
+  const empty =
+    createEmptyPillarProgress();
 
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return empty;
   }
 
   return {
     Force: cleanNumber(value.Force, 0),
     Savoir: cleanNumber(value.Savoir, 0),
-    Discipline: cleanNumber(value.Discipline, 0),
+    Discipline: cleanNumber(
+      value.Discipline,
+      0
+    ),
     Santé: cleanNumber(value.Santé, 0),
-    Leadership: cleanNumber(value.Leadership, 0),
+    Leadership: cleanNumber(
+      value.Leadership,
+      0
+    ),
     Foi: cleanNumber(value.Foi, 0),
-    Relations: cleanNumber(value.Relations, 0),
+    Relations: cleanNumber(
+      value.Relations,
+      0
+    ),
   };
 }
 
@@ -315,216 +464,411 @@ function rebuildProjectProgressFromHistory(
   completedMissions: CompletedMission[],
   dayHistory: DayArchive[]
 ): ProjectProgress {
-  const progress = createEmptyProjectProgress();
+  const progress =
+    createEmptyProjectProgress();
 
   dayHistory.forEach((day) => {
-    day.completedMissions.forEach((mission) => {
-      progress[mission.projectId] =
-        (progress[mission.projectId] ?? 0) + mission.xp;
-    });
+    day.completedMissions.forEach(
+      (mission) => {
+        progress[mission.projectId] =
+          (
+            progress[
+              mission.projectId
+            ] ?? 0
+          ) + mission.xp;
+      }
+    );
   });
 
-  completedMissions.forEach((mission) => {
-    progress[mission.projectId] =
-      (progress[mission.projectId] ?? 0) + mission.xp;
-  });
+  completedMissions.forEach(
+    (mission) => {
+      progress[mission.projectId] =
+        (
+          progress[
+            mission.projectId
+          ] ?? 0
+        ) + mission.xp;
+    }
+  );
 
   return progress;
 }
 
 function normalizeProjectProgress(
-  value: ProjectProgress | undefined,
+  value:
+    | ProjectProgress
+    | undefined,
   completedMissions: CompletedMission[],
   dayHistory: DayArchive[]
 ): ProjectProgress {
-  const rebuilt = rebuildProjectProgressFromHistory(
-    completedMissions,
-    dayHistory
-  );
+  const rebuilt =
+    rebuildProjectProgressFromHistory(
+      completedMissions,
+      dayHistory
+    );
 
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return rebuilt;
   }
 
-  const normalized = createEmptyProjectProgress();
+  const normalized =
+    createEmptyProjectProgress();
 
-  projectDetails.forEach((project) => {
-    normalized[project.id] = Math.max(
-      cleanNumber(value[project.id], 0),
-      rebuilt[project.id] ?? 0
-    );
-  });
+  projectDetails.forEach(
+    (project) => {
+      normalized[project.id] =
+        Math.max(
+          cleanNumber(
+            value[project.id],
+            0
+          ),
+          rebuilt[project.id] ?? 0
+        );
+    }
+  );
 
   return normalized;
 }
 
-function normalizeProjectLevels(value: ProjectLevels | undefined): ProjectLevels {
-  const normalized = createDefaultProjectLevels();
+function normalizeProjectLevels(
+  value:
+    | ProjectLevels
+    | undefined
+): ProjectLevels {
+  const normalized =
+    createDefaultProjectLevels();
 
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return normalized;
   }
 
-  projectDetails.forEach((project) => {
-    normalized[project.id] = Math.max(1, cleanNumber(value[project.id], 1));
-  });
+  projectDetails.forEach(
+    (project) => {
+      normalized[project.id] =
+        Math.max(
+          1,
+          cleanNumber(
+            value[project.id],
+            1
+          )
+        );
+    }
+  );
 
   return normalized;
 }
 
 function normalizeCompletedProjectLevels(
-  value: CompletedProjectLevels | undefined
+  value:
+    | CompletedProjectLevels
+    | undefined
 ): CompletedProjectLevels {
-  const normalized = createEmptyCompletedProjectLevels();
+  const normalized =
+    createEmptyCompletedProjectLevels();
 
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return normalized;
   }
 
-  projectDetails.forEach((project) => {
-    const rawLevels = value[project.id];
+  projectDetails.forEach(
+    (project) => {
+      const rawLevels =
+        value[project.id];
 
-    normalized[project.id] = Array.isArray(rawLevels)
-      ? rawLevels
-          .map((level) => cleanNumber(level, 0))
-          .filter((level) => level > 0)
-      : [];
-  });
+      normalized[project.id] =
+        Array.isArray(rawLevels)
+          ? rawLevels
+              .map((level) =>
+                cleanNumber(level, 0)
+              )
+              .filter(
+                (level) => level > 0
+              )
+          : [];
+    }
+  );
 
   return normalized;
 }
 
-function normalizeBossLevels(value: BossLevels | undefined): BossLevels {
-  const normalized = createDefaultBossLevels();
+function normalizeBossLevels(
+  value: BossLevels | undefined
+): BossLevels {
+  const normalized =
+    createDefaultBossLevels();
 
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return normalized;
   }
 
   bosses.forEach((boss) => {
-    normalized[boss.id] = Math.max(1, cleanNumber(value[boss.id], 1));
+    normalized[boss.id] =
+      Math.max(
+        1,
+        cleanNumber(
+          value[boss.id],
+          1
+        )
+      );
   });
 
   return normalized;
 }
 
 function normalizeCompletedBossLevels(
-  value: CompletedBossLevels | undefined
+  value:
+    | CompletedBossLevels
+    | undefined
 ): CompletedBossLevels {
-  const normalized = createEmptyCompletedBossLevels();
+  const normalized =
+    createEmptyCompletedBossLevels();
 
-  if (!value || typeof value !== "object") {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
     return normalized;
   }
 
   bosses.forEach((boss) => {
-    const rawLevels = value[boss.id];
+    const rawLevels =
+      value[boss.id];
 
-    normalized[boss.id] = Array.isArray(rawLevels)
-      ? rawLevels
-          .map((level) => cleanNumber(level, 0))
-          .filter((level) => level > 0)
-      : [];
+    normalized[boss.id] =
+      Array.isArray(rawLevels)
+        ? rawLevels
+            .map((level) =>
+              cleanNumber(level, 0)
+            )
+            .filter(
+              (level) => level > 0
+            )
+        : [];
   });
 
   return normalized;
 }
 
-function advanceCompletedProjects(save: SaveData): SaveData {
-  const nextProjectProgress = { ...save.projectProgress };
-  const nextProjectLevels = { ...save.projectLevels };
-  const nextCompletedProjectIds = save.completedProjectIds.filter(
-    (projectId) => {
-      const project = projectDetails.find((item) => item.id === projectId);
-      if (!project) return false;
+function advanceCompletedProjects(
+  save: SaveData
+): SaveData {
+  const nextProjectProgress = {
+    ...save.projectProgress,
+  };
 
-      const currentLevel = nextProjectLevels[projectId] ?? 1;
-      const targetXp = getProjectTargetXp(project.targetXp, currentLevel);
-      const currentXp = nextProjectProgress[projectId] ?? 0;
-      const levelAlreadyRewarded =
-        save.completedProjectLevels[projectId]?.includes(currentLevel) ?? false;
+  const nextProjectLevels = {
+    ...save.projectLevels,
+  };
 
-      if (currentXp < targetXp || !levelAlreadyRewarded) {
-        return true;
+  const nextCompletedProjectIds =
+    save.completedProjectIds.filter(
+      (projectId) => {
+        const project =
+          projectDetails.find(
+            (item) =>
+              item.id === projectId
+          );
+
+        if (!project) {
+          return false;
+        }
+
+        const currentLevel =
+          nextProjectLevels[
+            projectId
+          ] ?? 1;
+
+        const targetXp =
+          getProjectTargetXp(
+            project.targetXp,
+            currentLevel
+          );
+
+        const currentXp =
+          nextProjectProgress[
+            projectId
+          ] ?? 0;
+
+        const levelAlreadyRewarded =
+          save.completedProjectLevels[
+            projectId
+          ]?.includes(
+            currentLevel
+          ) ?? false;
+
+        if (
+          currentXp < targetXp ||
+          !levelAlreadyRewarded
+        ) {
+          return true;
+        }
+
+        nextProjectProgress[
+          projectId
+        ] = Math.max(
+          currentXp - targetXp,
+          0
+        );
+
+        nextProjectLevels[
+          projectId
+        ] = currentLevel + 1;
+
+        return false;
       }
-
-      nextProjectProgress[projectId] = Math.max(currentXp - targetXp, 0);
-      nextProjectLevels[projectId] = currentLevel + 1;
-
-      return false;
-    }
-  );
+    );
 
   return {
     ...save,
-    projectProgress: nextProjectProgress,
-    projectLevels: nextProjectLevels,
-    completedProjectIds: nextCompletedProjectIds,
+    projectProgress:
+      nextProjectProgress,
+    projectLevels:
+      nextProjectLevels,
+    completedProjectIds:
+      nextCompletedProjectIds,
   };
 }
 
-function advanceCompletedBosses(save: SaveData): SaveData {
-  const nextBossLevels = { ...save.bossLevels };
+function advanceCompletedBosses(
+  save: SaveData
+): SaveData {
+  const nextBossLevels = {
+    ...save.bossLevels,
+  };
+
   let nextBossHp = save.bossHp;
 
-  const nextDefeatedBossIds = save.defeatedBossIds.filter((bossId) => {
-    const boss = bosses.find((item) => item.id === bossId);
-    if (!boss) return false;
+  const nextDefeatedBossIds =
+    save.defeatedBossIds.filter(
+      (bossId) => {
+        const boss = bosses.find(
+          (item) =>
+            item.id === bossId
+        );
 
-    const currentLevel = nextBossLevels[bossId] ?? 1;
-    const levelAlreadyRewarded =
-      save.completedBossLevels[bossId]?.includes(currentLevel) ?? false;
+        if (!boss) {
+          return false;
+        }
 
-    if (!levelAlreadyRewarded || bossId !== activeBoss.id) {
-      return true;
-    }
+        const currentLevel =
+          nextBossLevels[
+            bossId
+          ] ?? 1;
 
-    const nextLevel = currentLevel + 1;
-    nextBossLevels[bossId] = nextLevel;
-    nextBossHp = getBossTargetHp(boss.maxHp, nextLevel);
+        const levelAlreadyRewarded =
+          save.completedBossLevels[
+            bossId
+          ]?.includes(
+            currentLevel
+          ) ?? false;
 
-    return false;
-  });
+        if (
+          !levelAlreadyRewarded ||
+          bossId !== activeBoss.id
+        ) {
+          return true;
+        }
+
+        const nextLevel =
+          currentLevel + 1;
+
+        nextBossLevels[bossId] =
+          nextLevel;
+
+        nextBossHp =
+          getBossTargetHp(
+            boss.maxHp,
+            nextLevel
+          );
+
+        return false;
+      }
+    );
 
   return {
     ...save,
     bossHp: nextBossHp,
     bossLevels: nextBossLevels,
-    defeatedBossIds: nextDefeatedBossIds,
+    defeatedBossIds:
+      nextDefeatedBossIds,
   };
 }
 
 function createDefaultSave(): SaveData {
   return {
-    schemaVersion: SAVE_SCHEMA_VERSION,
+    schemaVersion:
+      SAVE_SCHEMA_VERSION,
+
     currentDate: getTodayDate(),
     missionIndex: 0,
+
     xp: 0,
     glory: 0,
-    bossHp: getBossTargetHp(activeBoss.maxHp, 1),
+
+    bossHp: getBossTargetHp(
+      activeBoss.maxHp,
+      1
+    ),
+
     dailyGlory: 0,
+
     completedMissions: [],
     completedMissionIds: [],
     skippedMissionIds: [],
-    dailyMissions: cloneDefaultMissions(),
+
+    dailyMissions:
+      cloneDefaultMissions(),
+
     dayHistory: [],
-    pillarProgress: createEmptyPillarProgress(),
-    projectProgress: createEmptyProjectProgress(),
-    projectLevels: createDefaultProjectLevels(),
-    completedProjectLevels: createEmptyCompletedProjectLevels(),
+
+    pillarProgress:
+      createEmptyPillarProgress(),
+
+    projectProgress:
+      createEmptyProjectProgress(),
+
+    projectLevels:
+      createDefaultProjectLevels(),
+
+    completedProjectLevels:
+      createEmptyCompletedProjectLevels(),
+
     currentStreak: 0,
     bestStreak: 0,
     lastCompletedDate: null,
-    missionConfigVersion: CONFIG_VERSION,
+
+    missionConfigVersion:
+      CONFIG_VERSION,
+
     defeatedBossIds: [],
-    bossLevels: createDefaultBossLevels(),
-    completedBossLevels: createEmptyCompletedBossLevels(),
+
+    bossLevels:
+      createDefaultBossLevels(),
+
+    completedBossLevels:
+      createEmptyCompletedBossLevels(),
+
     completedProjectIds: [],
   };
 }
 
-export function normalizeSaveData(value: unknown): SaveData {
-  const defaultSave = createDefaultSave();
+export function normalizeSaveData(
+  value: unknown
+): SaveData {
+  const defaultSave =
+    createDefaultSave();
 
   if (
     typeof value !== "object" ||
@@ -534,160 +878,344 @@ export function normalizeSaveData(value: unknown): SaveData {
     return defaultSave;
   }
 
-  const raw = value as Partial<SaveData>;
+  const raw =
+    value as Partial<SaveData>;
 
-  const dailyMissions = Array.isArray(raw.dailyMissions)
-    ? migrateMissions(raw.dailyMissions, raw.missionConfigVersion ?? 1)
-    : cloneDefaultMissions();
+  const dailyMissions =
+    Array.isArray(
+      raw.dailyMissions
+    )
+      ? migrateMissions(
+          raw.dailyMissions,
+          raw.missionConfigVersion ??
+            1
+        )
+      : cloneDefaultMissions();
 
-  const completedMissions = Array.isArray(raw.completedMissions)
-    ? raw.completedMissions.map((mission) =>
-        normalizeCompletedMission(mission)
-      )
-    : [];
+  const completedMissions =
+    Array.isArray(
+      raw.completedMissions
+    )
+      ? raw.completedMissions.map(
+          (mission) =>
+            normalizeCompletedMission(
+              mission
+            )
+        )
+      : [];
+
+  const storedCompletedIds =
+    cleanStringArray(
+      raw.completedMissionIds
+    );
 
   const completedMissionIds =
-    cleanStringArray(raw.completedMissionIds).length > 0
-      ? cleanStringArray(raw.completedMissionIds)
-      : completedMissions.map((mission) => mission.id);
+    storedCompletedIds.length > 0
+      ? storedCompletedIds
+      : completedMissions.map(
+          (mission) =>
+            mission.id
+        );
 
-  const dayHistory = Array.isArray(raw.dayHistory)
-    ? raw.dayHistory.map((day) => normalizeDayArchive(day))
-    : [];
+  const dayHistory =
+    Array.isArray(raw.dayHistory)
+      ? raw.dayHistory.map(
+          (day) =>
+            normalizeDayArchive(day)
+        )
+      : [];
 
-  const projectProgress = normalizeProjectProgress(
-    raw.projectProgress,
-    completedMissions,
-    dayHistory
-  );
+  const projectProgress =
+    normalizeProjectProgress(
+      raw.projectProgress,
+      completedMissions,
+      dayHistory
+    );
 
-  const projectLevels = normalizeProjectLevels(raw.projectLevels);
+  const projectLevels =
+    normalizeProjectLevels(
+      raw.projectLevels
+    );
 
-  const completedProjectLevels = normalizeCompletedProjectLevels(
-    raw.completedProjectLevels
-  );
+  const completedProjectLevels =
+    normalizeCompletedProjectLevels(
+      raw.completedProjectLevels
+    );
 
-  const bossLevels = normalizeBossLevels(raw.bossLevels);
-  const completedBossLevels = normalizeCompletedBossLevels(
-    raw.completedBossLevels
-  );
+  const bossLevels =
+    normalizeBossLevels(
+      raw.bossLevels
+    );
 
-  const activeBossLevel = bossLevels[activeBoss.id] ?? 1;
-  const activeBossMaxHp = getBossTargetHp(activeBoss.maxHp, activeBossLevel);
+  const completedBossLevels =
+    normalizeCompletedBossLevels(
+      raw.completedBossLevels
+    );
+
+  const activeBossLevel =
+    bossLevels[
+      activeBoss.id
+    ] ?? 1;
+
+  const activeBossMaxHp =
+    getBossTargetHp(
+      activeBoss.maxHp,
+      activeBossLevel
+    );
 
   return {
     ...defaultSave,
     ...raw,
-    schemaVersion: SAVE_SCHEMA_VERSION,
+
+    schemaVersion:
+      SAVE_SCHEMA_VERSION,
+
     currentDate:
-      typeof raw.currentDate === "string" && raw.currentDate
+      typeof raw.currentDate ===
+        "string" &&
+      raw.currentDate
         ? raw.currentDate
         : defaultSave.currentDate,
-    missionIndex: cleanNumber(raw.missionIndex, 0),
+
+    missionIndex: cleanNumber(
+      raw.missionIndex,
+      0
+    ),
+
     xp: cleanNumber(raw.xp, 0),
-    glory: cleanNumber(raw.glory, 0),
-    bossHp: Math.min(cleanNumber(raw.bossHp, activeBossMaxHp), activeBossMaxHp),
-    dailyGlory: cleanNumber(raw.dailyGlory, 0),
+
+    glory: cleanNumber(
+      raw.glory,
+      0
+    ),
+
+    bossHp: Math.min(
+      cleanNumber(
+        raw.bossHp,
+        activeBossMaxHp
+      ),
+      activeBossMaxHp
+    ),
+
+    dailyGlory: cleanNumber(
+      raw.dailyGlory,
+      0
+    ),
+
     completedMissions,
     completedMissionIds,
-    skippedMissionIds: cleanStringArray(raw.skippedMissionIds),
+
+    skippedMissionIds:
+      cleanStringArray(
+        raw.skippedMissionIds
+      ),
+
     dailyMissions,
     dayHistory,
-    pillarProgress: normalizePillarProgress(raw.pillarProgress),
+
+    pillarProgress:
+      normalizePillarProgress(
+        raw.pillarProgress
+      ),
+
     projectProgress,
     projectLevels,
     completedProjectLevels,
-    currentStreak: cleanNumber(raw.currentStreak, 0),
-    bestStreak: cleanNumber(raw.bestStreak, 0),
+
+    currentStreak: cleanNumber(
+      raw.currentStreak,
+      0
+    ),
+
+    bestStreak: cleanNumber(
+      raw.bestStreak,
+      0
+    ),
+
     lastCompletedDate:
-      typeof raw.lastCompletedDate === "string"
+      typeof raw.lastCompletedDate ===
+        "string"
         ? raw.lastCompletedDate
         : null,
-    missionConfigVersion: CONFIG_VERSION,
-    defeatedBossIds: cleanStringArray(raw.defeatedBossIds),
+
+    missionConfigVersion:
+      CONFIG_VERSION,
+
+    defeatedBossIds:
+      cleanStringArray(
+        raw.defeatedBossIds
+      ),
+
     bossLevels,
     completedBossLevels,
-    completedProjectIds: cleanStringArray(raw.completedProjectIds),
+
+    completedProjectIds:
+      cleanStringArray(
+        raw.completedProjectIds
+      ),
   };
 }
 
-function createDayArchive(save: SaveData): DayArchive {
-  const activeMissionCount = getMissionsForDate(
-    save.dailyMissions,
-    save.currentDate
-  ).length;
+function createDayArchive(
+  save: SaveData
+): DayArchive {
+  const plannedMissions =
+    getMissionsForDate(
+      save.dailyMissions,
+      save.currentDate
+    ).map((mission) => ({
+      ...mission,
+      daysOfWeek: [
+        ...mission.daysOfWeek,
+      ],
+    }));
 
-  const xpGained = save.completedMissions.reduce(
-    (total, mission) => total + mission.xp,
-    0
-  );
+  const xpGained =
+    save.completedMissions.reduce(
+      (total, mission) =>
+        total + mission.xp,
+      0
+    );
 
   return {
     date: save.currentDate,
     xpGained,
-    gloryGained: save.dailyGlory,
-    completedMissions: save.completedMissions,
-    skippedMissionCount: save.skippedMissionIds.length,
-    plannedMissionCount: activeMissionCount,
+    gloryGained:
+      save.dailyGlory,
+
+    completedMissions:
+      save.completedMissions,
+
+    skippedMissionCount:
+      save.skippedMissionIds.length,
+
+    plannedMissionCount:
+      plannedMissions.length,
+
+    plannedMissions,
+
+    skippedMissionIds: [
+      ...save.skippedMissionIds,
+    ],
   };
 }
 
 export function useGame() {
-  const [save, setSave] = useState<SaveData>(createDefaultSave);
-  const [message, setMessage] = useState(companion.start);
+  const [save, setSave] =
+    useState<SaveData>(
+      createDefaultSave
+    );
+
+  const [message, setMessage] =
+    useState(companion.start);
 
   useEffect(() => {
-    const stored = localStorage.getItem(SAVE_KEY);
+    const stored =
+      localStorage.getItem(
+        SAVE_KEY
+      );
 
-    if (!stored) return;
+    if (!stored) {
+      return;
+    }
 
     try {
-      const parsedSave = JSON.parse(stored);
-      const storedSave = normalizeSaveData(parsedSave);
-      const today = getTodayDate();
+      const parsedSave =
+        JSON.parse(stored);
 
-      if (storedSave.currentDate !== today) {
-        const advancedProjectsSave = advanceCompletedProjects(storedSave);
-        const advancedSave = advanceCompletedBosses(advancedProjectsSave);
-        const yesterday = getPreviousDate(today);
-
-        const streakStillAlive =
-          advancedSave.lastCompletedDate === yesterday ||
-          advancedSave.lastCompletedDate === today;
-
-        const shouldArchiveDay =
-          advancedSave.completedMissions.length > 0 ||
-          advancedSave.skippedMissionIds.length > 0 ||
-          advancedSave.dailyGlory > 0 ||
-          getMissionsForDate(
-            advancedSave.dailyMissions,
-            advancedSave.currentDate
-          ).length > 0;
-
-        const historyWithoutDuplicate = advancedSave.dayHistory.filter(
-          (day) => day.date !== advancedSave.currentDate
+      const storedSave =
+        normalizeSaveData(
+          parsedSave
         );
 
-        const nextHistory = shouldArchiveDay
-          ? [createDayArchive(advancedSave), ...historyWithoutDuplicate]
-          : historyWithoutDuplicate;
+      const today =
+        getTodayDate();
 
-        const newDaySave: SaveData = {
-          ...advancedSave,
-          currentDate: today,
-          missionIndex: 0,
-          dailyGlory: 0,
-          completedMissions: [],
-          completedMissionIds: [],
-          skippedMissionIds: [],
-          dayHistory: nextHistory,
-          currentStreak: streakStillAlive
-            ? advancedSave.currentStreak
-            : 0,
-        };
+      if (
+        storedSave.currentDate !==
+        today
+      ) {
+        const advancedProjectsSave =
+          advanceCompletedProjects(
+            storedSave
+          );
+
+        const advancedSave =
+          advanceCompletedBosses(
+            advancedProjectsSave
+          );
+
+        const yesterday =
+          getPreviousDate(today);
+
+        const streakStillAlive =
+          advancedSave.lastCompletedDate ===
+            yesterday ||
+          advancedSave.lastCompletedDate ===
+            today;
+
+        const shouldArchiveDay =
+          advancedSave
+            .completedMissions
+            .length > 0 ||
+          advancedSave
+            .skippedMissionIds
+            .length > 0 ||
+          advancedSave.dailyGlory >
+            0 ||
+          getMissionsForDate(
+            advancedSave
+              .dailyMissions,
+            advancedSave
+              .currentDate
+          ).length > 0;
+
+        const historyWithoutDuplicate =
+          advancedSave.dayHistory.filter(
+            (day) =>
+              day.date !==
+              advancedSave.currentDate
+          );
+
+        const nextHistory =
+          shouldArchiveDay
+            ? [
+                createDayArchive(
+                  advancedSave
+                ),
+                ...historyWithoutDuplicate,
+              ]
+            : historyWithoutDuplicate;
+
+        const newDaySave: SaveData =
+          {
+            ...advancedSave,
+
+            currentDate: today,
+            missionIndex: 0,
+            dailyGlory: 0,
+
+            completedMissions: [],
+            completedMissionIds: [],
+            skippedMissionIds: [],
+
+            dayHistory:
+              nextHistory,
+
+            currentStreak:
+              streakStillAlive
+                ? advancedSave.currentStreak
+                : 0,
+          };
 
         setSave(newDaySave);
-        localStorage.setItem(SAVE_KEY, JSON.stringify(newDaySave));
+
+        localStorage.setItem(
+          SAVE_KEY,
+          JSON.stringify(
+            newDaySave
+          )
+        );
 
         setMessage(
           "Une nouvelle journée commence. Les Projets et Boss vaincus montent de niveau."
@@ -697,43 +1225,72 @@ export function useGame() {
       }
 
       setSave(storedSave);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(storedSave));
-    } catch {
-      const freshSave = createDefaultSave();
 
-      localStorage.setItem(SAVE_KEY, JSON.stringify(freshSave));
+      localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(storedSave)
+      );
+    } catch {
+      const freshSave =
+        createDefaultSave();
+
+      localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(freshSave)
+      );
+
       setSave(freshSave);
+
       setMessage(
         "La sauvegarde locale était illisible. RAS a recréé une base propre."
       );
     }
   }, []);
 
-  const activeMissions = getMissionsForDate(
-    save.dailyMissions,
-    save.currentDate
-  );
+  const activeMissions =
+    getMissionsForDate(
+      save.dailyMissions,
+      save.currentDate
+    );
 
-  const hasPlannedMissionsToday = activeMissions.length > 0;
+  const hasPlannedMissionsToday =
+    activeMissions.length > 0;
 
   const resolvedMissionIds = [
     ...save.completedMissionIds,
     ...save.skippedMissionIds,
   ];
 
-  const currentMission = activeMissions.find(
-    (mission) => !resolvedMissionIds.includes(mission.id)
-  );
+  const currentMission =
+    activeMissions.find(
+      (mission) =>
+        !resolvedMissionIds.includes(
+          mission.id
+        )
+    );
 
-  const ritualStarted = activeMissions.some((mission) =>
-    resolvedMissionIds.includes(mission.id)
-  );
+  const ritualStarted =
+    activeMissions.some(
+      (mission) =>
+        resolvedMissionIds.includes(
+          mission.id
+        )
+    );
 
-  function updateSave(nextSave: SaveData) {
-    const normalizedSave = normalizeSaveData(nextSave);
+  function updateSave(
+    nextSave: SaveData
+  ) {
+    const normalizedSave =
+      normalizeSaveData(nextSave);
 
     setSave(normalizedSave);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(normalizedSave));
+
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(
+        normalizedSave
+      )
+    );
   }
 
   function calculateStreak(
@@ -742,102 +1299,178 @@ export function useGame() {
   ) {
     const dayCompleted =
       plannedMissionCount > 0 &&
-      nextResolvedCount >= plannedMissionCount;
+      nextResolvedCount >=
+        plannedMissionCount;
 
-    const today = getTodayDate();
+    const today =
+      getTodayDate();
 
-    if (!dayCompleted || save.lastCompletedDate === today) {
+    if (
+      !dayCompleted ||
+      save.lastCompletedDate ===
+        today
+    ) {
       return {
-        currentStreak: save.currentStreak,
-        bestStreak: save.bestStreak,
-        lastCompletedDate: save.lastCompletedDate,
+        currentStreak:
+          save.currentStreak,
+
+        bestStreak:
+          save.bestStreak,
+
+        lastCompletedDate:
+          save.lastCompletedDate,
       };
     }
 
-    const yesterday = getPreviousDate(today);
+    const yesterday =
+      getPreviousDate(today);
 
     const currentStreak =
-      save.lastCompletedDate === yesterday
+      save.lastCompletedDate ===
+      yesterday
         ? save.currentStreak + 1
         : 1;
 
     return {
       currentStreak,
-      bestStreak: Math.max(save.bestStreak, currentStreak),
-      lastCompletedDate: today,
+
+      bestStreak: Math.max(
+        save.bestStreak,
+        currentStreak
+      ),
+
+      lastCompletedDate:
+        today,
     };
   }
 
-  function accomplirMission(missionId?: string) {
-    if (!hasPlannedMissionsToday) {
+  function accomplirMission(
+    missionId?: string
+  ) {
+    if (
+      !hasPlannedMissionsToday
+    ) {
       setMessage(
         "Aucune Mission n’est planifiée aujourd’hui. Ce jour est un repos stratégique."
       );
+
       return;
     }
 
-    const missionToComplete = missionId
-      ? activeMissions.find((mission) => mission.id === missionId)
-      : currentMission;
+    const missionToComplete =
+      missionId
+        ? activeMissions.find(
+            (mission) =>
+              mission.id ===
+              missionId
+          )
+        : currentMission;
 
-    if (!missionToComplete) return;
+    if (!missionToComplete) {
+      return;
+    }
 
     if (
-      save.completedMissionIds.includes(missionToComplete.id) ||
-      save.skippedMissionIds.includes(missionToComplete.id)
+      save.completedMissionIds.includes(
+        missionToComplete.id
+      ) ||
+      save.skippedMissionIds.includes(
+        missionToComplete.id
+      )
     ) {
       return;
     }
 
-    const completedMission: CompletedMission = {
-      id: missionToComplete.id,
-      title: missionToComplete.title,
-      pillar: missionToComplete.pillar,
-      projectId: missionToComplete.projectId,
-      xp: missionToComplete.xp,
-      glory: missionToComplete.glory,
-    };
+    const completedMission: CompletedMission =
+      {
+        id:
+          missionToComplete.id,
 
-    const updatedPillarProgress: PillarProgress = {
-      ...save.pillarProgress,
-      [missionToComplete.pillar]:
-        save.pillarProgress[missionToComplete.pillar] +
-        missionToComplete.glory,
-    };
+        title:
+          missionToComplete.title,
 
-    const updatedProjectProgress: ProjectProgress = {
-      ...save.projectProgress,
-      [missionToComplete.projectId]:
-        (save.projectProgress[missionToComplete.projectId] ?? 0) +
-        missionToComplete.xp,
-    };
+        pillar:
+          missionToComplete.pillar,
 
-    const nextCompletedMissionIds = [
-      ...save.completedMissionIds,
-      missionToComplete.id,
-    ];
+        projectId:
+          missionToComplete.projectId,
 
-    const nextCompletedMissions = [
-      ...save.completedMissions,
-      completedMission,
-    ];
+        xp:
+          missionToComplete.xp,
+
+        glory:
+          missionToComplete.glory,
+      };
+
+    const updatedPillarProgress: PillarProgress =
+      {
+        ...save.pillarProgress,
+
+        [missionToComplete.pillar]:
+          save.pillarProgress[
+            missionToComplete.pillar
+          ] +
+          missionToComplete.glory,
+      };
+
+    const updatedProjectProgress: ProjectProgress =
+      {
+        ...save.projectProgress,
+
+        [missionToComplete.projectId]:
+          (
+            save.projectProgress[
+              missionToComplete
+                .projectId
+            ] ?? 0
+          ) +
+          missionToComplete.xp,
+      };
+
+    const nextCompletedMissionIds =
+      [
+        ...save.completedMissionIds,
+        missionToComplete.id,
+      ];
+
+    const nextCompletedMissions =
+      [
+        ...save.completedMissions,
+        completedMission,
+      ];
 
     const nextResolvedCount =
-      nextCompletedMissionIds.length + save.skippedMissionIds.length;
+      nextCompletedMissionIds.length +
+      save.skippedMissionIds.length;
 
-    const dayCompleted = nextResolvedCount >= activeMissions.length;
+    const dayCompleted =
+      nextResolvedCount >=
+      activeMissions.length;
 
-    const activeBossLevel = save.bossLevels[activeBoss.id] ?? 1;
-    const activeBossMaxHp = getBossTargetHp(activeBoss.maxHp, activeBossLevel);
+    const activeBossLevel =
+      save.bossLevels[
+        activeBoss.id
+      ] ?? 1;
 
-    const nextBossHp = Math.max(
-      save.bossHp - missionToComplete.damage,
-      0
-    );
+    const activeBossMaxHp =
+      getBossTargetHp(
+        activeBoss.maxHp,
+        activeBossLevel
+      );
+
+    const nextBossHp =
+      Math.max(
+        save.bossHp -
+          missionToComplete.damage,
+        0
+      );
 
     const levelAlreadyRewarded =
-      save.completedBossLevels[activeBoss.id]?.includes(activeBossLevel) ??
-      false;
+      save.completedBossLevels[
+        activeBoss.id
+      ]?.includes(
+        activeBossLevel
+      ) ?? false;
 
     const bossJustDefeated =
       save.bossHp > 0 &&
@@ -848,107 +1481,196 @@ export function useGame() {
       bossJustDefeated
         ? {
             ...save.completedBossLevels,
+
             [activeBoss.id]: [
-              ...(save.completedBossLevels[activeBoss.id] ?? []),
+              ...(
+                save
+                  .completedBossLevels[
+                  activeBoss.id
+                ] ?? []
+              ),
+
               activeBossLevel,
             ],
           }
         : save.completedBossLevels;
 
-    const nextDefeatedBossIds = bossJustDefeated
-      ? Array.from(new Set([...save.defeatedBossIds, activeBoss.id]))
-      : save.defeatedBossIds;
+    const nextDefeatedBossIds =
+      bossJustDefeated
+        ? Array.from(
+            new Set([
+              ...save.defeatedBossIds,
+              activeBoss.id,
+            ])
+          )
+        : save.defeatedBossIds;
 
-    const bossReward = bossJustDefeated ? activeBoss.rewardGlory : 0;
+    const bossReward =
+      bossJustDefeated
+        ? activeBoss.rewardGlory
+        : 0;
 
-    const project = projectDetails.find(
-      (item) => item.id === missionToComplete.projectId
-    );
+    const project =
+      projectDetails.find(
+        (item) =>
+          item.id ===
+          missionToComplete.projectId
+      );
 
     const currentProjectLevel =
-      save.projectLevels[missionToComplete.projectId] ?? 1;
+      save.projectLevels[
+        missionToComplete.projectId
+      ] ?? 1;
 
-    const currentProjectTarget = project
-      ? getProjectTargetXp(project.targetXp, currentProjectLevel)
-      : 0;
+    const currentProjectTarget =
+      project
+        ? getProjectTargetXp(
+            project.targetXp,
+            currentProjectLevel
+          )
+        : 0;
 
     const previousProjectXp =
-      save.projectProgress[missionToComplete.projectId] ?? 0;
+      save.projectProgress[
+        missionToComplete.projectId
+      ] ?? 0;
 
     const nextProjectXp =
-      updatedProjectProgress[missionToComplete.projectId] ?? 0;
+      updatedProjectProgress[
+        missionToComplete.projectId
+      ] ?? 0;
 
     const projectLevelAlreadyRewarded =
       save.completedProjectLevels[
         missionToComplete.projectId
-      ]?.includes(currentProjectLevel) ?? false;
+      ]?.includes(
+        currentProjectLevel
+      ) ?? false;
 
     const projectJustCompleted =
       !!project &&
-      previousProjectXp < currentProjectTarget &&
-      nextProjectXp >= currentProjectTarget &&
+      previousProjectXp <
+        currentProjectTarget &&
+      nextProjectXp >=
+        currentProjectTarget &&
       !projectLevelAlreadyRewarded;
 
-    const projectReward = projectJustCompleted
-      ? project.rewardGlory
-      : 0;
+    const projectReward =
+      projectJustCompleted
+        ? project?.rewardGlory ?? 0
+        : 0;
 
     const nextCompletedProjectLevels: CompletedProjectLevels =
-      projectJustCompleted && project
+      projectJustCompleted &&
+      project
         ? {
             ...save.completedProjectLevels,
+
             [project.id]: [
-              ...(save.completedProjectLevels[project.id] ?? []),
+              ...(
+                save
+                  .completedProjectLevels[
+                  project.id
+                ] ?? []
+              ),
+
               currentProjectLevel,
             ],
           }
         : save.completedProjectLevels;
 
     const nextCompletedProjectIds =
-      projectJustCompleted && project
-        ? Array.from(new Set([...save.completedProjectIds, project.id]))
+      projectJustCompleted &&
+      project
+        ? Array.from(
+            new Set([
+              ...save.completedProjectIds,
+              project.id,
+            ])
+          )
         : save.completedProjectIds;
 
-    const streak = calculateStreak(
-      nextResolvedCount,
-      activeMissions.length
-    );
+    const streak =
+      calculateStreak(
+        nextResolvedCount,
+        activeMissions.length
+      );
 
     updateSave({
       ...save,
-      missionIndex: nextResolvedCount,
-      xp: save.xp + missionToComplete.xp,
+
+      missionIndex:
+        nextResolvedCount,
+
+      xp:
+        save.xp +
+        missionToComplete.xp,
+
       glory:
         save.glory +
         missionToComplete.glory +
         bossReward +
         projectReward,
-      dailyGlory: save.dailyGlory + missionToComplete.glory,
-      bossHp: Math.min(nextBossHp, activeBossMaxHp),
-      completedMissions: nextCompletedMissions,
-      completedMissionIds: nextCompletedMissionIds,
-      pillarProgress: updatedPillarProgress,
-      projectProgress: updatedProjectProgress,
-      completedProjectLevels: nextCompletedProjectLevels,
-      currentStreak: streak.currentStreak,
-      bestStreak: streak.bestStreak,
-      lastCompletedDate: streak.lastCompletedDate,
-      defeatedBossIds: nextDefeatedBossIds,
-      completedBossLevels: nextCompletedBossLevels,
-      completedProjectIds: nextCompletedProjectIds,
+
+      dailyGlory:
+        save.dailyGlory +
+        missionToComplete.glory,
+
+      bossHp: Math.min(
+        nextBossHp,
+        activeBossMaxHp
+      ),
+
+      completedMissions:
+        nextCompletedMissions,
+
+      completedMissionIds:
+        nextCompletedMissionIds,
+
+      pillarProgress:
+        updatedPillarProgress,
+
+      projectProgress:
+        updatedProjectProgress,
+
+      completedProjectLevels:
+        nextCompletedProjectLevels,
+
+      currentStreak:
+        streak.currentStreak,
+
+      bestStreak:
+        streak.bestStreak,
+
+      lastCompletedDate:
+        streak.lastCompletedDate,
+
+      defeatedBossIds:
+        nextDefeatedBossIds,
+
+      completedBossLevels:
+        nextCompletedBossLevels,
+
+      completedProjectIds:
+        nextCompletedProjectIds,
     });
 
     if (bossJustDefeated) {
       setMessage(
         `Boss vaincu : ${activeBoss.name} niveau ${activeBossLevel}. Le Royaume reçoit ${activeBoss.rewardGlory} Glory.`
       );
+
       return;
     }
 
-    if (projectJustCompleted && project) {
+    if (
+      projectJustCompleted &&
+      project
+    ) {
       setMessage(
         `Projet vaincu : ${project.title} niveau ${currentProjectLevel}. Le Royaume reçoit ${project.rewardGlory} Glory.`
       );
+
       return;
     }
 
@@ -956,53 +1678,89 @@ export function useGame() {
       setMessage(
         "La journée est accomplie. Les Missions non applicables n’ont entraîné aucune sanction."
       );
+
       return;
     }
 
-    setMessage(companionMissionMessages[missionToComplete.pillar]);
+    setMessage(
+      companionMissionMessages[
+        missionToComplete.pillar
+      ]
+    );
   }
 
-  function skipMission(missionId: string) {
-    if (!hasPlannedMissionsToday) {
+  function skipMission(
+    missionId: string
+  ) {
+    if (
+      !hasPlannedMissionsToday
+    ) {
       setMessage(
         "Aucune Mission n’est planifiée aujourd’hui. Rien à mettre au repos."
       );
+
       return;
     }
 
-    const mission = activeMissions.find((item) => item.id === missionId);
+    const mission =
+      activeMissions.find(
+        (item) =>
+          item.id === missionId
+      );
 
-    if (!mission) return;
+    if (!mission) {
+      return;
+    }
 
     if (
-      save.completedMissionIds.includes(missionId) ||
-      save.skippedMissionIds.includes(missionId)
+      save.completedMissionIds.includes(
+        missionId
+      ) ||
+      save.skippedMissionIds.includes(
+        missionId
+      )
     ) {
       return;
     }
 
-    const nextSkippedMissionIds = [
-      ...save.skippedMissionIds,
-      missionId,
-    ];
+    const nextSkippedMissionIds =
+      [
+        ...save.skippedMissionIds,
+        missionId,
+      ];
 
     const nextResolvedCount =
-      save.completedMissionIds.length + nextSkippedMissionIds.length;
+      save.completedMissionIds
+        .length +
+      nextSkippedMissionIds.length;
 
-    const dayCompleted = nextResolvedCount >= activeMissions.length;
+    const dayCompleted =
+      nextResolvedCount >=
+      activeMissions.length;
 
-    const streak = calculateStreak(
-      nextResolvedCount,
-      activeMissions.length
-    );
+    const streak =
+      calculateStreak(
+        nextResolvedCount,
+        activeMissions.length
+      );
 
     updateSave({
       ...save,
-      missionIndex: nextResolvedCount,
-      skippedMissionIds: nextSkippedMissionIds,
-      currentStreak: streak.currentStreak,
-      bestStreak: streak.bestStreak,
-      lastCompletedDate: streak.lastCompletedDate,
+
+      missionIndex:
+        nextResolvedCount,
+
+      skippedMissionIds:
+        nextSkippedMissionIds,
+
+      currentStreak:
+        streak.currentStreak,
+
+      bestStreak:
+        streak.bestStreak,
+
+      lastCompletedDate:
+        streak.lastCompletedDate,
     });
 
     setMessage(
@@ -1016,97 +1774,170 @@ export function useGame() {
     title: string,
     pillar: Pillar,
     ritualId: string,
-    daysOfWeek: WeekDay[] = allWeekDays,
-    projectId = "project-ras-v1"
+    daysOfWeek: WeekDay[] =
+      allWeekDays,
+    projectId =
+      "project-ras-v1"
   ) {
-    if (ritualStarted || !title.trim() || daysOfWeek.length === 0) return;
+    if (
+      ritualStarted ||
+      !title.trim() ||
+      daysOfWeek.length === 0
+    ) {
+      return;
+    }
 
-    const newMission = normalizeMission({
-      id: `mission-${Date.now()}`,
-      chapterId: "chapter-ras",
-      bossId: "boss-chaos",
-      projectId,
-      ritualId,
-      title: title.trim(),
-      pillar,
-      xp: 10,
-      glory: 5,
-      damage: 5,
-      daysOfWeek,
-    });
+    const newMission =
+      normalizeMission({
+        id: `mission-${Date.now()}`,
+        chapterId:
+          "chapter-ras",
+        bossId:
+          "boss-chaos",
+        projectId,
+        ritualId,
+        title: title.trim(),
+        pillar,
+        xp: 10,
+        glory: 5,
+        damage: 5,
+        daysOfWeek,
+      });
 
-    const updatedMissions = [...save.dailyMissions, newMission].sort(
+    const updatedMissions = [
+      ...save.dailyMissions,
+      newMission,
+    ].sort(
       (a, b) =>
-        ritualOrder.indexOf(a.ritualId) -
-        ritualOrder.indexOf(b.ritualId)
+        ritualOrder.indexOf(
+          a.ritualId
+        ) -
+        ritualOrder.indexOf(
+          b.ritualId
+        )
     );
 
     updateSave({
       ...save,
-      dailyMissions: updatedMissions,
+      dailyMissions:
+        updatedMissions,
     });
   }
 
-  function updateDailyMission(updatedMission: Mission) {
-    if (ritualStarted) return;
+  function updateDailyMission(
+    updatedMission: Mission
+  ) {
+    if (ritualStarted) {
+      return;
+    }
 
-    const normalizedMission = normalizeMission(updatedMission);
+    const normalizedMission =
+      normalizeMission(
+        updatedMission
+      );
 
     updateSave({
       ...save,
-      dailyMissions: save.dailyMissions.map((mission) =>
-        mission.id === normalizedMission.id ? normalizedMission : mission
-      ),
+
+      dailyMissions:
+        save.dailyMissions.map(
+          (mission) =>
+            mission.id ===
+            normalizedMission.id
+              ? normalizedMission
+              : mission
+        ),
     });
   }
 
-  function removeDailyMission(missionId: string) {
-    if (ritualStarted) return;
+  function removeDailyMission(
+    missionId: string
+  ) {
+    if (ritualStarted) {
+      return;
+    }
 
     updateSave({
       ...save,
-      dailyMissions: save.dailyMissions.filter(
-        (mission) => mission.id !== missionId
-      ),
+
+      dailyMissions:
+        save.dailyMissions.filter(
+          (mission) =>
+            mission.id !==
+            missionId
+        ),
     });
   }
 
   function restoreDefaultMissions() {
-    if (ritualStarted) return;
+    if (ritualStarted) {
+      return;
+    }
 
     updateSave({
       ...save,
-      dailyMissions: cloneDefaultMissions(),
-      missionConfigVersion: CONFIG_VERSION,
+
+      dailyMissions:
+        cloneDefaultMissions(),
+
+      missionConfigVersion:
+        CONFIG_VERSION,
     });
   }
 
   function resetGame() {
-    const freshSave = createDefaultSave();
+    const freshSave =
+      createDefaultSave();
 
-    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(
+      SAVE_KEY
+    );
+
     setSave(freshSave);
-    setMessage(companion.start);
+
+    setMessage(
+      companion.start
+    );
   }
 
   function simulateNewDay() {
-    const today = getTodayDate();
-    const yesterday = getPreviousDate(today);
+    const today =
+      getTodayDate();
 
-    const simulatedSave: SaveData = {
-      ...save,
-      currentDate: yesterday,
-      lastCompletedDate: save.currentStreak > 0 ? yesterday : null,
-    };
+    const yesterday =
+      getPreviousDate(today);
 
-    localStorage.setItem(SAVE_KEY, JSON.stringify(simulatedSave));
+    const simulatedSave: SaveData =
+      {
+        ...save,
+
+        currentDate:
+          yesterday,
+
+        lastCompletedDate:
+          save.currentStreak > 0
+            ? yesterday
+            : null,
+      };
+
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(
+        simulatedSave
+      )
+    );
+
     window.location.reload();
   }
 
-  const pillarScores = pillars.map((pillar) => ({
-    pillar,
-    score: save.pillarProgress[pillar],
-  }));
+  const pillarScores =
+    pillars.map((pillar) => ({
+      pillar,
+      score:
+        save.pillarProgress[
+          pillar
+        ],
+    }));
 
   return {
     save,
@@ -1116,6 +1947,7 @@ export function useGame() {
     pillarScores,
     ritualStarted,
     hasPlannedMissionsToday,
+
     accomplirMission,
     skipMission,
     addDailyMission,

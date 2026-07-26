@@ -78,6 +78,8 @@ export interface DayArchive {
   completedMissions: CompletedMission[];
   skippedMissionCount: number;
   plannedMissionCount: number;
+  plannedMissions: Mission[];
+  skippedMissionIds: string[];
 }
 
 export interface Kingdom {
@@ -90,15 +92,10 @@ export interface Companion {
 }
 
 export type PillarProgress = Record<Pillar, number>;
-
 export type ProjectProgress = Record<string, number>;
-
 export type ProjectLevels = Record<string, number>;
-
 export type CompletedProjectLevels = Record<string, number[]>;
-
 export type BossLevels = Record<string, number>;
-
 export type CompletedBossLevels = Record<string, number[]>;
 
 export interface SaveData {
