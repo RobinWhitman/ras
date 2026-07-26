@@ -612,6 +612,11 @@ export function normalizeSaveData(value: unknown): SaveData {
 }
 
 function createDayArchive(save: SaveData): DayArchive {
+  const activeMissionCount = getMissionsForDate(
+    save.dailyMissions,
+    save.currentDate
+  ).length;
+
   const xpGained = save.completedMissions.reduce(
     (total, mission) => total + mission.xp,
     0
@@ -623,10 +628,7 @@ function createDayArchive(save: SaveData): DayArchive {
     gloryGained: save.dailyGlory,
     completedMissions: save.completedMissions,
     skippedMissionCount: save.skippedMissionIds.length,
-    plannedMissionCount: getMissionsForDate(
-      save.dailyMissions,
-      save.currentDate
-    ).length,
+    plannedMissionCount: activeMissionCount,
   };
 }
 
@@ -656,7 +658,11 @@ export function useGame() {
         const shouldArchiveDay =
           advancedSave.completedMissions.length > 0 ||
           advancedSave.skippedMissionIds.length > 0 ||
-          advancedSave.dailyGlory > 0;
+          advancedSave.dailyGlory > 0 ||
+          getMissionsForDate(
+            advancedSave.dailyMissions,
+            advancedSave.currentDate
+          ).length > 0;
 
         const historyWithoutDuplicate = advancedSave.dayHistory.filter(
           (day) => day.date !== advancedSave.currentDate
@@ -707,6 +713,8 @@ export function useGame() {
     save.dailyMissions,
     save.currentDate
   );
+
+  const hasPlannedMissionsToday = activeMissions.length > 0;
 
   const resolvedMissionIds = [
     ...save.completedMissionIds,
@@ -761,6 +769,13 @@ export function useGame() {
   }
 
   function accomplirMission(missionId?: string) {
+    if (!hasPlannedMissionsToday) {
+      setMessage(
+        "Aucune Mission n’est planifiée aujourd’hui. Ce jour est un repos stratégique."
+      );
+      return;
+    }
+
     const missionToComplete = missionId
       ? activeMissions.find((mission) => mission.id === missionId)
       : currentMission;
@@ -948,6 +963,13 @@ export function useGame() {
   }
 
   function skipMission(missionId: string) {
+    if (!hasPlannedMissionsToday) {
+      setMessage(
+        "Aucune Mission n’est planifiée aujourd’hui. Rien à mettre au repos."
+      );
+      return;
+    }
+
     const mission = activeMissions.find((item) => item.id === missionId);
 
     if (!mission) return;
@@ -1093,6 +1115,7 @@ export function useGame() {
     message,
     pillarScores,
     ritualStarted,
+    hasPlannedMissionsToday,
     accomplirMission,
     skipMission,
     addDailyMission,
