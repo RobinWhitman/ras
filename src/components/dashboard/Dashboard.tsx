@@ -22,9 +22,11 @@ import VictoryToast from "./VictoryToast";
 export default function Dashboard() {
   const {
     save,
+    activeMissions,
     currentMission,
     message,
     pillarScores,
+    hasPlannedMissionsToday,
     accomplirMission,
   } = useGame();
 
@@ -44,23 +46,32 @@ export default function Dashboard() {
     return () => window.clearTimeout(timeout);
   }, [message]);
 
+  const dashboardMission =
+    currentMission ??
+    activeMissions.find(
+      (mission) =>
+        !save.completedMissionIds.includes(mission.id) &&
+        !save.skippedMissionIds.includes(mission.id)
+    );
+
   const activeChapter = chapters[0];
   const baseBoss = bosses[0];
   const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
+
   const activeBoss = {
     ...baseBoss,
     maxHp: getBossTargetHp(baseBoss.maxHp, bossLevel),
   };
 
-  const activeProject = currentMission
+  const activeProject = dashboardMission
     ? projects.find(
-        (project) => project.id === currentMission.projectId
+        (project) => project.id === dashboardMission.projectId
       )
     : projects[0];
 
-  const activeRitual = currentMission
+  const activeRitual = dashboardMission
     ? rituals.find(
-        (ritual) => ritual.id === currentMission.ritualId
+        (ritual) => ritual.id === dashboardMission.ritualId
       )
     : rituals[0];
 
@@ -68,18 +79,18 @@ export default function Dashboard() {
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
 
-  let dayState = "🌙 Repos";
+  let dayState = "Repos";
 
   if (save.dailyGlory >= 5) {
-    dayState = "🛡 Solide";
+    dayState = "Solide";
   }
 
   if (save.dailyGlory >= 15) {
-    dayState = "⭐ Héroïque";
+    dayState = "Héroïque";
   }
 
   if (save.dailyGlory >= 28) {
-    dayState = "🌟 Légendaire";
+    dayState = "Légendaire";
   }
 
   return (
@@ -112,8 +123,13 @@ export default function Dashboard() {
               dayState={dayState}
               chapterTitle={activeChapter.title}
               bossName={`${activeBoss.name} Niv. ${bossLevel}`}
-              currentMission={currentMission}
-              onAccomplish={() => accomplirMission()}
+              currentMission={dashboardMission}
+              hasPlannedMissionsToday={hasPlannedMissionsToday}
+              onAccomplish={() => {
+                if (dashboardMission) {
+                  accomplirMission(dashboardMission.id);
+                }
+              }}
             />
           </div>
 
@@ -141,50 +157,51 @@ export default function Dashboard() {
           </div>
 
           <div className="col-span-3 min-h-0">
-            <Card title="🐈‍⬛ LOKI">
-              <div className="flex h-full flex-col">
-                <p className="flex-1">{message}</p>
+            <Card title="LOKI">
+              <div className="flex h-full items-center gap-3">
+                <img
+                  src="/assets/companion/loki-pixel.png"
+                  alt="LOKI"
+                  className="h-20 w-20 shrink-0 rounded border border-green-900 object-cover"
+                />
 
-                <a
-                  href="/companion"
-                  className="mt-3 rounded-lg border border-green-900 px-3 py-2 text-center text-xs font-bold text-green-400 transition hover:border-green-500"
-                >
-                  Consulter LOKI →
-                </a>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <p className="line-clamp-3 flex-1 text-xs text-zinc-300">
+                    {message}
+                  </p>
+
+                  <a
+                    href="/companion"
+                    className="mt-2 rounded border border-green-900 px-3 py-1.5 text-center text-xs font-bold text-green-400 transition hover:border-green-500"
+                  >
+                    Consulter LOKI
+                  </a>
+                </div>
               </div>
             </Card>
           </div>
 
           <div className="col-span-6 min-h-0">
-            <Card title="⚔ Chapitre actif">
+            <Card title="Chapitre actif">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-zinc-500">
-                    Chapitre
-                  </p>
-
+                  <p className="text-xs text-zinc-500">Chapitre</p>
                   <p className="font-bold">
                     {activeChapter.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">
-                    Projet
-                  </p>
-
+                  <p className="text-xs text-zinc-500">Projet</p>
                   <p className="font-bold">
-                    {activeProject?.title}
+                    {activeProject?.title ?? "Aucun projet"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">
-                    Rituel
-                  </p>
-
+                  <p className="text-xs text-zinc-500">Rituel</p>
                   <p className="font-bold">
-                    {activeRitual?.title}
+                    {activeRitual?.title ?? "Aucun rituel"}
                   </p>
                 </div>
               </div>
