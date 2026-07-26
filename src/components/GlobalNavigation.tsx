@@ -5,26 +5,16 @@ import { usePathname } from "next/navigation";
 import { navigationLinks } from "@/data/navigation";
 import BrandLogo from "@/components/BrandLogo";
 
-type TopBarProps = {
-  heroLevel: number;
-  xp: number;
-  glory: number;
-  currentStreak: number;
-  bestStreak: number;
-};
-
-export default function TopBar({
-  heroLevel,
-  xp,
-  glory,
-  currentStreak,
-  bestStreak,
-}: TopBarProps) {
+export default function GlobalNavigation() {
   const pathname = usePathname();
 
+  if (pathname === "/") {
+    return null;
+  }
+
   return (
-    <header className="flex h-16 min-w-0 items-center gap-4 rounded-lg border border-zinc-800 bg-black px-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+    <header className="sticky top-0 z-50 h-16 border-b border-zinc-800 bg-black/95 px-4 text-white backdrop-blur">
+      <div className="mx-auto flex h-full max-w-[1800px] min-w-0 items-center gap-4">
         <BrandLogo />
 
         <nav className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -54,7 +44,7 @@ export default function TopBar({
                     {link.icon}
                   </span>
 
-                  <span className="hidden 2xl:inline">
+                  <span className="hidden xl:inline">
                     {link.label}
                   </span>
                 </Link>
@@ -62,28 +52,6 @@ export default function TopBar({
             })}
           </div>
         </nav>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-4 border-l border-zinc-800 pl-4 text-right">
-        <div className="hidden lg:block">
-          <p className="text-sm font-black text-orange-400">
-            Série {currentStreak}
-          </p>
-
-          <p className="text-[10px] text-zinc-500">
-            Record {bestStreak}
-          </p>
-        </div>
-
-        <div>
-          <p className="whitespace-nowrap text-sm font-black text-white">
-            Robin · Niv. {heroLevel}
-          </p>
-
-          <p className="whitespace-nowrap text-[10px] text-zinc-400">
-            {xp} XP · {glory} Glory
-          </p>
-        </div>
       </div>
     </header>
   );
