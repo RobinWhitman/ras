@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   bosses,
   chapters,
+  companion,
   kingdom,
   projects,
   rituals,
 } from "@/data/game";
+import { getAchievements } from "@/lib/achievements";
 import { getBossTargetHp, useGame } from "@/hooks/useGame";
 import Card from "@/components/Card";
 import TopBar from "./TopBar";
@@ -33,6 +35,36 @@ export default function Dashboard() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
 
+  const activeChapter = chapters[0];
+  const baseBoss = bosses[0];
+  const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
+  const heroLevel = Math.floor(save.xp / 50) + 1;
+  const currentLevelXp = save.xp % 50;
+
+  const unlockedAchievementSignature = getAchievements(
+    save,
+    pillarScores
+  )
+    .filter((achievement) => achievement.unlocked)
+    .map(
+      (achievement) =>
+        `${achievement.id}::${achievement.title}`
+    )
+    .sort()
+    .join("|");
+
+  const previousHeroLevel = useRef(heroLevel);
+
+  const previousAchievementIds = useRef<string[]>(
+    unlockedAchievementSignature
+      ? unlockedAchievementSignature
+          .split("|")
+          .map((entry) => entry.split("::")[0])
+      : []
+  );
+
+  const progressTrackingReady = useRef(false);
+
   useEffect(() => {
     if (!message) return;
 
@@ -46,38 +78,120 @@ export default function Dashboard() {
     return () => window.clearTimeout(timeout);
   }, [message]);
 
+  useEffect(() => {
+    const currentAchievements =
+      unlockedAchievementSignature
+        ? unlockedAchievementSignature
+            .split("|")
+            .map((entry) => {
+              const [id, ...titleParts] =
+                entry.split("::");
+
+              return {
+                id,
+                title: titleParts.join("::"),
+              };
+            })
+        : [];
+
+    const currentAchievementIds =
+      currentAchievements.map(
+        (achievement) => achievement.id
+      );
+
+    if (
+      !progressTrackingReady.current ||
+      message === companion.start
+    ) {
+      progressTrackingReady.current = true;
+      previousHeroLevel.current = heroLevel;
+      previousAchievementIds.current =
+        currentAchievementIds;
+
+      return;
+    }
+
+    const notifications: string[] = [];
+
+    if (heroLevel > previousHeroLevel.current) {
+      notifications.push(
+        `Niveau ${heroLevel} atteint`
+      );
+    }
+
+    const newlyUnlockedAchievements =
+      currentAchievements.filter(
+        (achievement) =>
+          !previousAchievementIds.current.includes(
+            achievement.id
+          )
+      );
+
+    newlyUnlockedAchievements.forEach(
+      (achievement) => {
+        notifications.push(
+          `Succès débloqué : ${achievement.title}`
+        );
+      }
+    );
+
+    previousHeroLevel.current = heroLevel;
+    previousAchievementIds.current =
+      currentAchievementIds;
+
+    if (notifications.length === 0) return;
+
+    setToastMessage(
+      `${message} ${notifications.join(" · ")}`
+    );
+
+    setToastVisible(true);
+  }, [
+    heroLevel,
+    message,
+    unlockedAchievementSignature,
+  ]);
+
   const dashboardMission =
     currentMission ??
     activeMissions.find(
       (mission) =>
-        !save.completedMissionIds.includes(mission.id) &&
-        !save.skippedMissionIds.includes(mission.id)
+        !save.completedMissionIds.includes(
+          mission.id
+        ) &&
+        !save.skippedMissionIds.includes(
+          mission.id
+        )
     );
-
-  const activeChapter = chapters[0];
-  const baseBoss = bosses[0];
-  const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
 
   const activeBoss = {
     ...baseBoss,
-    maxHp: getBossTargetHp(baseBoss.maxHp, bossLevel),
+    maxHp: getBossTargetHp(
+      baseBoss.maxHp,
+      bossLevel
+    ),
   };
 
   const activeProject = dashboardMission
     ? projects.find(
-        (project) => project.id === dashboardMission.projectId
+        (project) =>
+          project.id ===
+          dashboardMission.projectId
       )
     : projects[0];
 
   const activeRitual = dashboardMission
     ? rituals.find(
-        (ritual) => ritual.id === dashboardMission.ritualId
+        (ritual) =>
+          ritual.id ===
+          dashboardMission.ritualId
       )
     : rituals[0];
 
-  const bossDefeated = save.defeatedBossIds.includes(baseBoss.id);
-  const heroLevel = Math.floor(save.xp / 50) + 1;
-  const currentLevelXp = save.xp % 50;
+  const bossDefeated =
+    save.defeatedBossIds.includes(
+      baseBoss.id
+    );
 
   let dayState = "Repos";
 
@@ -124,21 +238,29 @@ export default function Dashboard() {
               chapterTitle={activeChapter.title}
               bossName={`${activeBoss.name} Niv. ${bossLevel}`}
               currentMission={dashboardMission}
-              hasPlannedMissionsToday={hasPlannedMissionsToday}
+              hasPlannedMissionsToday={
+                hasPlannedMissionsToday
+              }
               onAccomplish={() => {
                 if (dashboardMission) {
-                  accomplirMission(dashboardMission.id);
+                  accomplirMission(
+                    dashboardMission.id
+                  );
                 }
               }}
             />
           </div>
 
           <div className="col-span-3 min-h-0">
-            <KingdomPanel pillarScores={pillarScores} />
+            <KingdomPanel
+              pillarScores={pillarScores}
+            />
           </div>
 
           <div className="col-span-3 min-h-0">
-            <PillarsPanel pillarScores={pillarScores} />
+            <PillarsPanel
+              pillarScores={pillarScores}
+            />
           </div>
 
           <div className="col-span-3 min-h-0">
@@ -152,7 +274,9 @@ export default function Dashboard() {
 
           <div className="col-span-3 row-span-2 min-h-0">
             <JournalPanel
-              completedMissions={save.completedMissions}
+              completedMissions={
+                save.completedMissions
+              }
             />
           </div>
 
@@ -172,7 +296,7 @@ export default function Dashboard() {
 
                   <a
                     href="/companion"
-                    className="mt-2 rounded border border-green-900 px-3 py-1.5 text-center text-xs font-bold text-green-400 transition hover:border-green-500"
+                    className="mt-2 rounded border border-green-900 px-3 py-1.5 text-center text-xs font-bold text-green-400 hover:border-green-500"
                   >
                     Consulter LOKI
                   </a>
@@ -185,23 +309,34 @@ export default function Dashboard() {
             <Card title="Chapitre actif">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-zinc-500">Chapitre</p>
+                  <p className="text-xs text-zinc-500">
+                    Chapitre
+                  </p>
+
                   <p className="font-bold">
                     {activeChapter.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">Projet</p>
+                  <p className="text-xs text-zinc-500">
+                    Projet
+                  </p>
+
                   <p className="font-bold">
-                    {activeProject?.title ?? "Aucun projet"}
+                    {activeProject?.title ??
+                      "Aucun projet"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-zinc-500">Rituel</p>
+                  <p className="text-xs text-zinc-500">
+                    Rituel
+                  </p>
+
                   <p className="font-bold">
-                    {activeRitual?.title ?? "Aucun rituel"}
+                    {activeRitual?.title ??
+                      "Aucun rituel"}
                   </p>
                 </div>
               </div>
