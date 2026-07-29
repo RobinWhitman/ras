@@ -5,6 +5,11 @@ export const navigationLinks = [
     icon: "🎯",
   },
   {
+    href: "/rituals",
+    label: "Rituels",
+    icon: "⏳",
+  },
+  {
     href: "/companion",
     label: "LOKI",
     icon: "🐈‍⬛",

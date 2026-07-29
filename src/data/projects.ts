@@ -42,6 +42,28 @@ export const projectDetails: ProjectDetails[] = [
     rewardGlory: 250,
     icon: "🛡️",
   },
+  {
+    id: "project-phf",
+    title: "Développer PHF",
+    description:
+      "Faire progresser la production, les ventes et les livraisons de PHF.",
+    objective:
+      "Transformer les actions professionnelles réalisées pour PHF en progression suivie.",
+    targetXp: 600,
+    rewardGlory: 250,
+    icon: "🍱",
+  },
+  {
+    id: "project-transmission",
+    title: "Transmettre et accompagner",
+    description:
+      "Faire progresser les activités de coaching, de formation et de transmission.",
+    objective:
+      "Transformer les accompagnements réalisés en progression suivie.",
+    targetXp: 600,
+    rewardGlory: 250,
+    icon: "🎓",
+  },
 ];
 
 export function getProjectDetail(projectId: string) {

@@ -11,6 +11,7 @@ const requiredFiles = [
   "src/app/layout.tsx",
   "src/app/page.tsx",
   "src/app/missions/page.tsx",
+  "src/app/rituals/page.tsx",
   "src/app/projects/page.tsx",
   "src/app/boss/page.tsx",
   "src/app/chapter/page.tsx",
@@ -24,15 +25,20 @@ const requiredFiles = [
   "src/components/dashboard/MorningPanel.tsx",
   "src/components/dashboard/TopBar.tsx",
   "src/components/dashboard/VictoryToast.tsx",
+  "src/components/settings/SaveManager.tsx",
   "src/data/navigation.ts",
+  "src/data/routines.ts",
   "src/hooks/useGame.ts",
-  "src/types/game.ts"
+  "src/hooks/useRoutines.ts",
+  "src/lib/routines.ts",
+  "src/types/game.ts",
+  "src/types/routines.ts",
 ];
 
 const requiredAssets = [
   "public/assets/hero/robin-pixel.png",
   "public/assets/companion/loki-pixel.png",
-  "public/assets/brand/ras-logo.png"
+  "public/assets/brand/ras-logo.png",
 ];
 
 const sourceRequirements = [
@@ -42,8 +48,8 @@ const sourceRequirements = [
       "normalizeSaveData",
       "plannedMissions",
       "completedProjectLevels",
-      "completedBossLevels"
-    ]
+      "completedBossLevels",
+    ],
   },
   {
     file: "src/types/game.ts",
@@ -51,75 +57,97 @@ const sourceRequirements = [
       "schemaVersion",
       "plannedMissions",
       "bossLevels",
-      "projectLevels"
-    ]
+      "projectLevels",
+    ],
   },
   {
     file: "src/components/dashboard/Dashboard.tsx",
     markers: [
       "VictoryToast",
       "unlockedAchievementSignature",
-      "hasPlannedMissionsToday"
-    ]
+      "hasPlannedMissionsToday",
+    ],
   },
   {
     file: "src/app/layout.tsx",
     markers: [
       "GlobalNavigation",
-      "RAS — The Game of Life"
-    ]
-  }
+      "RAS — The Game of Life",
+    ],
+  },
+  {
+    file: "src/data/navigation.ts",
+    markers: ["/rituals", "Rituels"],
+  },
+  {
+    file: "src/data/routines.ts",
+    markers: [
+      "Meal prep personnel",
+      "hebdo-lecture-biblique",
+      "periodique-bilan-physique",
+      "primalLoopSteps",
+    ],
+  },
+  {
+    file: "src/data/game.ts",
+    markers: [
+      "Production PHF",
+      "Livraisons clients",
+      "Coaching haltérophilie",
+      "Ventes PHF",
+    ],
+  },
+  {
+    file: "src/hooks/useRoutines.ts",
+    markers: [
+      "spiritualProjectUnlocked",
+      "addPhysicalAssessment",
+      "completeRoutine",
+    ],
+  },
+  {
+    file: "src/components/settings/SaveManager.tsx",
+    markers: [
+      "ROUTINE_SAVE_KEY",
+      "routines",
+      "normalizeRoutineSave",
+    ],
+  },
 ];
 
 const errors = [];
 
 async function verifyFile(relativePath) {
-  const absolutePath = path.join(
-    projectRoot,
-    relativePath
-  );
+  const absolutePath = path.join(projectRoot, relativePath);
 
   try {
-    const fileStat = await stat(
-      absolutePath
-    );
+    const fileStat = await stat(absolutePath);
 
     if (!fileStat.isFile()) {
       errors.push(
         `${relativePath} existe mais n'est pas un fichier.`
       );
-
       return;
     }
 
     if (fileStat.size === 0) {
-      errors.push(
-        `${relativePath} est vide.`
-      );
+      errors.push(`${relativePath} est vide.`);
     }
   } catch {
-    errors.push(
-      `${relativePath} est manquant.`
-    );
+    errors.push(`${relativePath} est manquant.`);
   }
 }
 
 async function verifyAsset(relativePath) {
-  const absolutePath = path.join(
-    projectRoot,
-    relativePath
-  );
+  const absolutePath = path.join(projectRoot, relativePath);
 
   try {
-    const fileStat = await stat(
-      absolutePath
-    );
+    const fileStat = await stat(absolutePath);
 
     if (!fileStat.isFile()) {
       errors.push(
         `${relativePath} n'est pas un fichier image.`
       );
-
       return;
     }
 
@@ -129,26 +157,15 @@ async function verifyAsset(relativePath) {
       );
     }
   } catch {
-    errors.push(
-      `${relativePath} est manquant.`
-    );
+    errors.push(`${relativePath} est manquant.`);
   }
 }
 
-async function verifySource({
-  file,
-  markers,
-}) {
-  const absolutePath = path.join(
-    projectRoot,
-    file
-  );
+async function verifySource({ file, markers }) {
+  const absolutePath = path.join(projectRoot, file);
 
   try {
-    const source = await readFile(
-      absolutePath,
-      "utf8"
-    );
+    const source = await readFile(absolutePath, "utf8");
 
     markers.forEach((marker) => {
       if (!source.includes(marker)) {
@@ -158,24 +175,18 @@ async function verifySource({
       }
     });
   } catch {
-    errors.push(
-      `${file} ne peut pas être contrôlé.`
-    );
+    errors.push(`${file} ne peut pas être contrôlé.`);
   }
 }
 
 await Promise.all([
   ...requiredFiles.map(verifyFile),
   ...requiredAssets.map(verifyAsset),
-  ...sourceRequirements.map(
-    verifySource
-  )
+  ...sourceRequirements.map(verifySource),
 ]);
 
 if (errors.length > 0) {
-  console.error(
-    "\nVérification RAS échouée :\n"
-  );
+  console.error("\nVérification RAS échouée :\n");
 
   errors.forEach((error) => {
     console.error(`- ${error}`);
@@ -186,5 +197,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  "Structure RAS validée : fichiers, progression et assets présents."
+  "Structure RAS validée : fichiers, progression, routines et assets présents."
 );

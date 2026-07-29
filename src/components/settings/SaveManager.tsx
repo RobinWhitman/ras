@@ -1,16 +1,27 @@
 "use client";
 
 import { ChangeEvent, useRef, useState } from "react";
+import { routineDefinitions } from "@/data/routines";
 import { normalizeSaveData } from "@/hooks/useGame";
+import {
+  normalizeRoutineSave,
+  ROUTINE_SAVE_KEY,
+} from "@/lib/routines";
 
 const SAVE_KEY = "ras-save-v9";
-const EXPORT_VERSION = 2;
+const EXPORT_VERSION = 3;
 
 type ExportFile = {
   application: "RAS";
   exportVersion: number;
   exportedAt: string;
   save: unknown;
+  routines: unknown;
+};
+
+type ExtractedSave = {
+  save: unknown;
+  routines?: unknown;
 };
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -21,16 +32,22 @@ function isObject(value: unknown): value is Record<string, unknown> {
   );
 }
 
-function extractSaveFromFile(parsedFile: unknown) {
+function extractSaveFromFile(parsedFile: unknown): ExtractedSave {
   if (
     isObject(parsedFile) &&
     parsedFile.application === "RAS" &&
     "save" in parsedFile
   ) {
-    return parsedFile.save;
+    return {
+      save: parsedFile.save,
+      routines:
+        "routines" in parsedFile ? parsedFile.routines : undefined,
+    };
   }
 
-  return parsedFile;
+  return {
+    save: parsedFile,
+  };
 }
 
 function isProbablyRasSave(value: unknown) {
@@ -56,7 +73,6 @@ function isProbablyRasSave(value: unknown) {
 
 export default function SaveManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -73,23 +89,28 @@ export default function SaveManager() {
 
     try {
       const parsedSave = JSON.parse(storedSave);
-      const normalizedSave = normalizeSaveData(parsedSave);
+      const storedRoutines = localStorage.getItem(ROUTINE_SAVE_KEY);
+      const parsedRoutines = storedRoutines
+        ? JSON.parse(storedRoutines)
+        : null;
 
       const exportData: ExportFile = {
         application: "RAS",
         exportVersion: EXPORT_VERSION,
         exportedAt: new Date().toISOString(),
-        save: normalizedSave,
+        save: normalizeSaveData(parsedSave),
+        routines: normalizeRoutineSave(
+          parsedRoutines,
+          routineDefinitions
+        ),
       };
 
       const fileContent = JSON.stringify(exportData, null, 2);
       const blob = new Blob([fileContent], {
         type: "application/json",
       });
-
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-
       const date = new Date().toLocaleDateString("fr-CA");
 
       link.href = downloadUrl;
@@ -98,10 +119,11 @@ export default function SaveManager() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-
       URL.revokeObjectURL(downloadUrl);
 
-      setMessage("Sauvegarde exportée avec succès.");
+      setMessage(
+        "Progression, routines et bilans physiques exportés avec succès."
+      );
     } catch {
       setError("Impossible d’exporter la sauvegarde.");
     }
@@ -110,13 +132,10 @@ export default function SaveManager() {
   function openImportWindow() {
     setMessage("");
     setError("");
-
     fileInputRef.current?.click();
   }
 
-  async function importSave(
-    event: ChangeEvent<HTMLInputElement>
-  ) {
+  async function importSave(event: ChangeEvent<HTMLInputElement>) {
     setMessage("");
     setError("");
 
@@ -127,16 +146,23 @@ export default function SaveManager() {
     try {
       const fileContent = await file.text();
       const parsedFile = JSON.parse(fileContent);
-      const importedSave = extractSaveFromFile(parsedFile);
+      const extracted = extractSaveFromFile(parsedFile);
 
-      if (!isProbablyRasSave(importedSave)) {
+      if (!isProbablyRasSave(extracted.save)) {
         throw new Error("Invalid save");
       }
 
-      const normalizedSave = normalizeSaveData(importedSave);
+      const normalizedSave = normalizeSaveData(extracted.save);
+      const normalizedRoutines =
+        extracted.routines === undefined
+          ? null
+          : normalizeRoutineSave(
+              extracted.routines,
+              routineDefinitions
+            );
 
       const confirmed = window.confirm(
-        "Importer cette sauvegarde remplacera toute la progression actuellement enregistrée dans RAS. Continuer ?"
+        "Importer cette sauvegarde remplacera la progression actuellement enregistrée dans RAS. Continuer ?"
       );
 
       if (!confirmed) {
@@ -145,6 +171,13 @@ export default function SaveManager() {
       }
 
       localStorage.setItem(SAVE_KEY, JSON.stringify(normalizedSave));
+
+      if (normalizedRoutines) {
+        localStorage.setItem(
+          ROUTINE_SAVE_KEY,
+          JSON.stringify(normalizedRoutines)
+        );
+      }
 
       window.location.reload();
     } catch {
@@ -162,22 +195,22 @@ export default function SaveManager() {
         <button
           type="button"
           onClick={exportSave}
-          className="rounded-xl border border-yellow-700 bg-yellow-500/10 p-5 text-left transition hover:border-yellow-400"
+          className="rounded-lg border border-yellow-700 bg-yellow-500/10 p-5 text-left transition hover:border-yellow-400"
         >
           <p className="text-lg font-bold text-yellow-400">
             📤 Exporter la sauvegarde
           </p>
 
           <p className="mt-2 text-sm text-zinc-400">
-            Télécharge toute ta progression RAS dans un fichier
-            versionné et réimportable.
+            Télécharge la progression, les routines et les bilans
+            physiques dans un fichier réimportable.
           </p>
         </button>
 
         <button
           type="button"
           onClick={openImportWindow}
-          className="rounded-xl border border-zinc-700 p-5 text-left transition hover:border-yellow-400"
+          className="rounded-lg border border-zinc-700 p-5 text-left transition hover:border-yellow-400"
         >
           <p className="text-lg font-bold">
             📥 Importer une sauvegarde
@@ -185,7 +218,7 @@ export default function SaveManager() {
 
           <p className="mt-2 text-sm text-zinc-400">
             Restaure une progression exportée. Les anciennes
-            sauvegardes sont normalisées automatiquement.
+            sauvegardes restent compatibles.
           </p>
         </button>
       </div>
