@@ -26,7 +26,7 @@ import type {
 
 const SAVE_KEY = "ras-save-v9";
 const SAVE_SCHEMA_VERSION = 7;
-const CONFIG_VERSION = 4;
+const CONFIG_VERSION = 5;
 const activeBoss = bosses[0];
 
 const pillars: Pillar[] = [
@@ -282,7 +282,7 @@ function migrateMissions(
   existingMissions: Partial<Mission>[],
   version: number
 ): Mission[] {
-  const migratedMissions =
+  let migratedMissions =
     existingMissions.map(
       (mission, index) =>
         normalizeMission(mission, index)
@@ -335,6 +335,36 @@ function migrateMissions(
           )
       );
     }
+  }
+
+  if (version < 5) {
+    const legacyDefaultMissionIds = new Set([
+      "mission-ouvrir-ras",
+      "mission-eau",
+      "mission-priere",
+      "mission-plan",
+      "mission-action-prioritaire",
+      "mission-seance",
+      "mission-preparer-demain",
+      "mission-gratitude",
+    ]);
+
+    migratedMissions = migratedMissions.filter(
+      (mission) =>
+        !legacyDefaultMissionIds.has(mission.id)
+    );
+
+    const migratedMissionIds = new Set(
+      migratedMissions.map((mission) => mission.id)
+    );
+
+    defaultMissions.forEach((mission, index) => {
+      if (!migratedMissionIds.has(mission.id)) {
+        migratedMissions.push(
+          normalizeMission({ ...mission }, index)
+        );
+      }
+    });
   }
 
   return migratedMissions.sort(
