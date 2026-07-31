@@ -437,7 +437,7 @@ export default function RitualsPage() {
           <p className="text-sm font-bold uppercase text-yellow-400">
             Rituels et routines
           </p>
-          <h1 className="mt-1 text-3xl font-bold">
+          <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
             Discipline du {formatDisplayDate(today)}
           </h1>
           <p className="mt-2 max-w-3xl text-zinc-400">

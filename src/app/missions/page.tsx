@@ -28,24 +28,34 @@ export default function MissionsPage() {
     totalCount === 0
       ? 0
       : Math.round((resolvedCount / totalCount) * 100);
+  const currentDay = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${save.currentDate}T12:00:00`));
 
   return (
-    <main className="min-h-screen bg-black p-6 text-white">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex items-center justify-between rounded-xl border border-zinc-800 p-5">
+    <main className="min-h-screen bg-black p-3 text-white sm:p-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+        <header className="flex flex-col items-stretch gap-4 rounded-lg border border-zinc-800 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <p className="text-sm uppercase tracking-widest text-yellow-400">
               RAS
             </p>
 
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-2xl font-bold sm:text-3xl">
               🎯 Missions du jour
             </h1>
+
+            <p className="mt-1 text-sm capitalize text-zinc-400">
+              {currentDay}
+            </p>
           </div>
 
           <Link
             href="/"
-            className="rounded-lg bg-yellow-500 px-5 py-3 font-bold text-black"
+            className="min-h-11 rounded-lg bg-yellow-500 px-5 py-3 text-center font-bold text-black"
           >
             ← Retour au Dashboard
           </Link>
@@ -77,7 +87,7 @@ export default function MissionsPage() {
           </div>
         </section>
 
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
           {rituals.map((ritual) => {
             const ritualMissions = activeMissions.filter(
               (mission) => mission.ritualId === ritual.id
@@ -166,13 +176,13 @@ export default function MissionsPage() {
                               Au repos aujourd’hui
                             </div>
                           ) : (
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                               <button
                                 type="button"
                                 onClick={() =>
                                   accomplirMission(mission.id)
                                 }
-                                className="rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black"
+                                className="min-h-11 rounded-lg bg-yellow-500 px-4 py-2 font-bold text-black"
                               >
                                 Accomplir
                               </button>
@@ -182,7 +192,7 @@ export default function MissionsPage() {
                                 onClick={() =>
                                   skipMission(mission.id)
                                 }
-                                className="rounded-lg border border-zinc-700 px-4 py-2 font-bold text-zinc-300"
+                                className="min-h-11 rounded-lg border border-zinc-700 px-4 py-2 font-bold text-zinc-300"
                               >
                                 🌙 Pas aujourd’hui
                               </button>

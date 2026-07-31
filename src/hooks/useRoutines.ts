@@ -25,10 +25,42 @@ function persistRoutineSave(save: RoutineSaveData) {
 }
 
 export function useRoutines() {
-  const today = getLocalDate();
+  const [today, setToday] = useState(getLocalDate);
   const [save, setSave] = useState<RoutineSaveData>(() =>
     createRoutineSave(routineDefinitions, today)
   );
+
+  useEffect(() => {
+    function refreshDate() {
+      setToday(getLocalDate());
+    }
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        refreshDate();
+      }
+    }
+
+    const dateInterval = window.setInterval(
+      refreshDate,
+      60_000
+    );
+
+    window.addEventListener("focus", refreshDate);
+    document.addEventListener(
+      "visibilitychange",
+      refreshWhenVisible
+    );
+
+    return () => {
+      window.clearInterval(dateInterval);
+      window.removeEventListener("focus", refreshDate);
+      document.removeEventListener(
+        "visibilitychange",
+        refreshWhenVisible
+      );
+    };
+  }, []);
 
   useEffect(() => {
     try {

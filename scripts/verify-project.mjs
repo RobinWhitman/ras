@@ -49,6 +49,8 @@ const sourceRequirements = [
       "plannedMissions",
       "completedProjectLevels",
       "completedBossLevels",
+      "synchronizeSaveDate",
+      "visibilitychange",
     ],
   },
   {
@@ -66,6 +68,7 @@ const sourceRequirements = [
       "VictoryToast",
       "unlockedAchievementSignature",
       "hasPlannedMissionsToday",
+      "currentDate={save.currentDate}",
     ],
   },
   {
@@ -78,6 +81,14 @@ const sourceRequirements = [
   {
     file: "src/data/navigation.ts",
     markers: ["/rituals", "Rituels"],
+  },
+  {
+    file: "src/components/GlobalNavigation.tsx",
+    markers: [
+      "mobileNavigationLinks",
+      "Navigation principale",
+      "fixed inset-x-0 bottom-0",
+    ],
   },
   {
     file: "src/data/routines.ts",

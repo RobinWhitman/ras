@@ -10,7 +10,7 @@ export const ROUTINE_SAVE_KEY = "ras-routines-v1";
 export const ROUTINE_SCHEMA_VERSION = 1;
 
 export function getLocalDate() {
-  return new Date().toLocaleDateString("fr-CA");
+  return formatDate(new Date());
 }
 
 function parseDate(date: string) {
@@ -18,7 +18,11 @@ function parseDate(date: string) {
 }
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString("fr-CA");
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 export function addDays(date: string, amount: number) {

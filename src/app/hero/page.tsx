@@ -62,22 +62,22 @@ export default function HeroPage() {
     );
 
   return (
-    <main className="min-h-screen bg-black p-6 text-white">
+    <main className="min-h-screen bg-black p-3 text-white sm:p-6">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex items-center justify-between rounded-xl border border-zinc-800 p-5">
+        <header className="flex flex-col items-stretch gap-4 rounded-lg border border-zinc-800 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <p className="text-sm uppercase tracking-widest text-yellow-400">
               RAS
             </p>
 
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-2xl font-bold sm:text-3xl">
               ⚔ Héros
             </h1>
           </div>
 
           <Link
             href="/"
-            className="rounded-lg bg-yellow-500 px-5 py-3 font-bold text-black"
+            className="min-h-11 rounded-lg bg-yellow-500 px-5 py-3 text-center font-bold text-black"
           >
             ← Retour au Dashboard
           </Link>

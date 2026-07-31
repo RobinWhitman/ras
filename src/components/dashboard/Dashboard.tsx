@@ -212,30 +212,31 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="h-dvh overflow-hidden bg-black p-3 text-sm text-white">
+    <main className="min-h-dvh overflow-x-hidden bg-black p-2 text-sm text-white sm:p-3 lg:h-dvh lg:overflow-hidden">
       <VictoryToast
         message={toastMessage}
         visible={toastVisible}
       />
 
-      <div className="mx-auto grid h-full max-w-[1800px] grid-rows-[64px_minmax(0,1fr)] gap-3">
+      <div className="mx-auto flex min-h-full max-w-[1800px] flex-col gap-2 lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[64px_minmax(0,1fr)] lg:gap-3">
         <TopBar
           heroLevel={heroLevel}
           xp={save.xp}
           glory={save.glory}
           currentStreak={save.currentStreak}
           bestStreak={save.bestStreak}
+          currentDate={save.currentDate}
         />
 
-        <div className="grid min-h-0 grid-cols-12 grid-rows-[200px_220px_minmax(0,1fr)] gap-3">
-          <div className="col-span-3 row-span-2 min-h-0">
+        <div className="grid grid-cols-1 gap-2 lg:min-h-0 lg:grid-cols-12 lg:grid-rows-[200px_220px_minmax(0,1fr)] lg:gap-3">
+          <div className="order-2 min-h-[390px] lg:order-none lg:col-span-3 lg:row-span-2 lg:min-h-0">
             <HeroPanel
               heroLevel={heroLevel}
               currentLevelXp={currentLevelXp}
             />
           </div>
 
-          <div className="col-span-6 min-h-0">
+          <div className="order-1 min-h-[240px] lg:order-none lg:col-span-6 lg:min-h-0">
             <MorningPanel
               kingdomState={kingdom.state}
               dayState={dayState}
@@ -255,19 +256,19 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="col-span-3 min-h-0">
+          <div className="order-3 min-h-[230px] lg:order-none lg:col-span-3 lg:min-h-0">
             <KingdomPanel
               pillarScores={pillarScores}
             />
           </div>
 
-          <div className="col-span-3 min-h-0">
+          <div className="order-4 min-h-[350px] lg:order-none lg:col-span-3 lg:min-h-0">
             <PillarsPanel
               pillarScores={pillarScores}
             />
           </div>
 
-          <div className="col-span-3 min-h-0">
+          <div className="order-5 min-h-[240px] lg:order-none lg:col-span-3 lg:min-h-0">
             <BossPanel
               boss={activeBoss}
               bossHp={save.bossHp}
@@ -276,7 +277,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="col-span-3 row-span-2 min-h-0">
+          <div className="order-8 min-h-[300px] lg:order-none lg:col-span-3 lg:row-span-2 lg:min-h-0">
             <JournalPanel
               completedMissions={
                 save.completedMissions
@@ -284,7 +285,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="col-span-3 min-h-0">
+          <div className="order-6 min-h-[190px] lg:order-none lg:col-span-3 lg:min-h-0">
             <Card title="LOKI">
               <div className="flex h-full items-center gap-3">
                 <img
@@ -309,9 +310,9 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="col-span-6 min-h-0">
+          <div className="order-7 min-h-[250px] lg:order-none lg:col-span-6 lg:min-h-0">
             <Card title="Chapitre actif">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                 <div>
                   <p className="text-xs text-zinc-500">
                     Chapitre

@@ -46,14 +46,22 @@ const ritualOrder = [
 ];
 
 function getTodayDate() {
-  return new Date().toLocaleDateString("fr-CA");
+  return formatLocalDate(new Date());
+}
+
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function getPreviousDate(date: string) {
   const previousDate = new Date(`${date}T12:00:00`);
   previousDate.setDate(previousDate.getDate() - 1);
 
-  return previousDate.toLocaleDateString("fr-CA");
+  return formatLocalDate(previousDate);
 }
 
 function getWeekDay(date: string): WeekDay {
@@ -1130,6 +1138,65 @@ function createDayArchive(
   };
 }
 
+function synchronizeSaveDate(
+  sourceSave: SaveData,
+  today: string
+): {
+  save: SaveData;
+  dayChanged: boolean;
+} {
+  if (sourceSave.currentDate === today) {
+    return {
+      save: sourceSave,
+      dayChanged: false,
+    };
+  }
+
+  const advancedProjectsSave =
+    advanceCompletedProjects(sourceSave);
+  const advancedSave =
+    advanceCompletedBosses(advancedProjectsSave);
+  const yesterday = getPreviousDate(today);
+  const streakStillAlive =
+    advancedSave.lastCompletedDate === yesterday ||
+    advancedSave.lastCompletedDate === today;
+  const shouldArchiveDay =
+    advancedSave.completedMissions.length > 0 ||
+    advancedSave.skippedMissionIds.length > 0 ||
+    advancedSave.dailyGlory > 0 ||
+    getMissionsForDate(
+      advancedSave.dailyMissions,
+      advancedSave.currentDate
+    ).length > 0;
+  const historyWithoutDuplicate =
+    advancedSave.dayHistory.filter(
+      (day) => day.date !== advancedSave.currentDate
+    );
+  const nextHistory = shouldArchiveDay
+    ? [
+        createDayArchive(advancedSave),
+        ...historyWithoutDuplicate,
+      ]
+    : historyWithoutDuplicate;
+
+  return {
+    save: {
+      ...advancedSave,
+      currentDate: today,
+      missionIndex: 0,
+      dailyGlory: 0,
+      completedMissions: [],
+      completedMissionIds: [],
+      skippedMissionIds: [],
+      dayHistory: nextHistory,
+      currentStreak: streakStillAlive
+        ? advancedSave.currentStreak
+        : 0,
+    },
+    dayChanged: true,
+  };
+}
+
 export function useGame() {
   const [save, setSave] =
     useState<SaveData>(
@@ -1275,6 +1342,75 @@ export function useGame() {
         "La sauvegarde locale était illisible. RAS a recréé une base propre."
       );
     }
+  }, []);
+
+  useEffect(() => {
+    function refreshCurrentDate() {
+      const stored = localStorage.getItem(SAVE_KEY);
+
+      if (!stored) {
+        const freshSave = createDefaultSave();
+
+        localStorage.setItem(
+          SAVE_KEY,
+          JSON.stringify(freshSave)
+        );
+        setSave(freshSave);
+        return;
+      }
+
+      try {
+        const storedSave = normalizeSaveData(
+          JSON.parse(stored)
+        );
+        const synchronized = synchronizeSaveDate(
+          storedSave,
+          getTodayDate()
+        );
+
+        if (!synchronized.dayChanged) return;
+
+        localStorage.setItem(
+          SAVE_KEY,
+          JSON.stringify(synchronized.save)
+        );
+        setSave(synchronized.save);
+        setMessage(
+          "Une nouvelle journée commence. Les Projets et Boss vaincus montent de niveau."
+        );
+      } catch {
+        return;
+      }
+    }
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        refreshCurrentDate();
+      }
+    }
+
+    const dateInterval = window.setInterval(
+      refreshCurrentDate,
+      60_000
+    );
+
+    window.addEventListener("focus", refreshCurrentDate);
+    document.addEventListener(
+      "visibilitychange",
+      refreshWhenVisible
+    );
+
+    return () => {
+      window.clearInterval(dateInterval);
+      window.removeEventListener(
+        "focus",
+        refreshCurrentDate
+      );
+      document.removeEventListener(
+        "visibilitychange",
+        refreshWhenVisible
+      );
+    };
   }, []);
 
   const activeMissions =

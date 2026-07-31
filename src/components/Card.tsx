@@ -7,9 +7,9 @@ type CardProps = {
 export default function Card({ title, children, className = "" }: CardProps) {
   return (
     <section
-      className={`h-full overflow-hidden border border-zinc-800 rounded-xl p-3 ${className}`}
+      className={`h-full overflow-visible rounded-lg border border-zinc-800 p-3 sm:p-4 lg:overflow-hidden ${className}`}
     >
-      <h2 className="text-lg font-bold mb-2">{title}</h2>
+      <h2 className="mb-2 text-base font-bold sm:text-lg">{title}</h2>
       {children}
     </section>
   );

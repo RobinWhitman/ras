@@ -34,7 +34,9 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-black text-white">
         <GlobalNavigation />
-        {children}
+        <div className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+          {children}
+        </div>
       </body>
     </html>
   );

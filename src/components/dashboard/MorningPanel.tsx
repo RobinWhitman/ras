@@ -50,7 +50,7 @@ export default function MorningPanel({
         </div>
 
         {currentMission ? (
-          <div className="flex min-h-0 flex-1 items-center justify-between gap-4 rounded border border-yellow-700 bg-yellow-950/30 p-3">
+          <div className="flex min-h-0 flex-1 flex-col items-stretch justify-between gap-3 rounded border border-yellow-700 bg-yellow-950/30 p-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase text-yellow-500">
                 Mission active
@@ -68,7 +68,7 @@ export default function MorningPanel({
             <button
               type="button"
               onClick={onAccomplish}
-              className="shrink-0 rounded border border-yellow-500 bg-yellow-600 px-4 py-2 text-xs font-black uppercase text-black hover:bg-yellow-400"
+              className="min-h-11 w-full shrink-0 rounded border border-yellow-500 bg-yellow-600 px-4 py-2 text-xs font-black uppercase text-black hover:bg-yellow-400 sm:w-auto"
             >
               Accomplir
             </button>
