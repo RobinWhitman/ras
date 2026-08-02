@@ -24,7 +24,7 @@ import type {
   WeekDay,
 } from "@/types/game";
 
-const SAVE_KEY = "ras-save-v9";
+export const GAME_SAVE_KEY = "ras-save-v9";
 const SAVE_SCHEMA_VERSION = 7;
 const CONFIG_VERSION = 5;
 const activeBoss = bosses[0];
@@ -1209,7 +1209,7 @@ export function useGame() {
   useEffect(() => {
     const stored =
       localStorage.getItem(
-        SAVE_KEY
+        GAME_SAVE_KEY
       );
 
     if (!stored) {
@@ -1308,7 +1308,7 @@ export function useGame() {
         setSave(newDaySave);
 
         localStorage.setItem(
-          SAVE_KEY,
+          GAME_SAVE_KEY,
           JSON.stringify(
             newDaySave
           )
@@ -1324,7 +1324,7 @@ export function useGame() {
       setSave(storedSave);
 
       localStorage.setItem(
-        SAVE_KEY,
+        GAME_SAVE_KEY,
         JSON.stringify(storedSave)
       );
     } catch {
@@ -1332,7 +1332,7 @@ export function useGame() {
         createDefaultSave();
 
       localStorage.setItem(
-        SAVE_KEY,
+        GAME_SAVE_KEY,
         JSON.stringify(freshSave)
       );
 
@@ -1346,13 +1346,13 @@ export function useGame() {
 
   useEffect(() => {
     function refreshCurrentDate() {
-      const stored = localStorage.getItem(SAVE_KEY);
+      const stored = localStorage.getItem(GAME_SAVE_KEY);
 
       if (!stored) {
         const freshSave = createDefaultSave();
 
         localStorage.setItem(
-          SAVE_KEY,
+          GAME_SAVE_KEY,
           JSON.stringify(freshSave)
         );
         setSave(freshSave);
@@ -1371,7 +1371,7 @@ export function useGame() {
         if (!synchronized.dayChanged) return;
 
         localStorage.setItem(
-          SAVE_KEY,
+          GAME_SAVE_KEY,
           JSON.stringify(synchronized.save)
         );
         setSave(synchronized.save);
@@ -1452,7 +1452,7 @@ export function useGame() {
     setSave(normalizedSave);
 
     localStorage.setItem(
-      SAVE_KEY,
+      GAME_SAVE_KEY,
       JSON.stringify(
         normalizedSave
       )
@@ -2056,7 +2056,7 @@ export function useGame() {
       createDefaultSave();
 
     localStorage.removeItem(
-      SAVE_KEY
+      GAME_SAVE_KEY
     );
 
     setSave(freshSave);
@@ -2087,7 +2087,7 @@ export function useGame() {
       };
 
     localStorage.setItem(
-      SAVE_KEY,
+      GAME_SAVE_KEY,
       JSON.stringify(
         simulatedSave
       )

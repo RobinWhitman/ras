@@ -9,6 +9,7 @@ import {
   formatRoutineCadence,
   getRoutineTargetCount,
 } from "@/lib/routines";
+import { getRoutineReward } from "@/lib/routineRewards";
 import { useRoutines } from "@/hooks/useRoutines";
 import type {
   PhysicalAssessment,
@@ -333,6 +334,7 @@ function RoutineCard({
   onComplete: () => void;
 }) {
   const target = getRoutineTargetCount(routine);
+  const reward = getRoutineReward(routine);
   const disabled =
     finalized || (completedToday && !routine.allowMultiplePerDay);
 
@@ -348,7 +350,7 @@ function RoutineCard({
         <div>
           <h3 className="font-bold text-white">{routine.title}</h3>
           <p className="mt-1 text-xs text-zinc-500">
-            {routine.pillar} · {formatRoutineCadence(routine)}
+            {routine.pillar} · {formatRoutineCadence(routine)} · +{reward.xp} XP · +{reward.glory} Glory
           </p>
         </div>
 
@@ -408,6 +410,7 @@ export default function RitualsPage() {
     availableRoutines,
     routineStates,
     spiritualProjectUnlocked,
+    rewardMessage,
     completeRoutine,
     addPhysicalAssessment,
   } = useRoutines();
@@ -445,6 +448,12 @@ export default function RitualsPage() {
             remet à zéro que sa propre progression.
           </p>
         </header>
+
+        {rewardMessage && (
+          <section className="rounded-lg border border-yellow-600 bg-yellow-500/10 p-4 font-bold text-yellow-300">
+            {rewardMessage}
+          </section>
+        )}
 
         {spiritualProjectUnlocked && (
           <section className="rounded-lg border border-yellow-500 bg-yellow-500/10 p-5 font-bold text-yellow-300">

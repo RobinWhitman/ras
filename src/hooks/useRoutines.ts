@@ -3,6 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { routineDefinitions } from "@/data/routines";
 import {
+  GAME_SAVE_KEY,
+  normalizeSaveData,
+} from "@/hooks/useGame";
+import {
+  applyRoutineReward,
+  getRoutineReward,
+} from "@/lib/routineRewards";
+import {
   advanceRoutineSave,
   completeRoutinePeriod,
   createRoutineSave,
@@ -26,6 +34,7 @@ function persistRoutineSave(save: RoutineSaveData) {
 
 export function useRoutines() {
   const [today, setToday] = useState(getLocalDate);
+  const [rewardMessage, setRewardMessage] = useState("");
   const [save, setSave] = useState<RoutineSaveData>(() =>
     createRoutineSave(routineDefinitions, today)
   );
@@ -102,6 +111,29 @@ export function useRoutines() {
     [today]
   );
 
+  function awardRoutine(routine: (typeof routineDefinitions)[number]) {
+    try {
+      const storedGame = localStorage.getItem(GAME_SAVE_KEY);
+      const gameSave = normalizeSaveData(
+        storedGame ? JSON.parse(storedGame) : null
+      );
+      const nextGameSave = applyRoutineReward(gameSave, routine);
+      const reward = getRoutineReward(routine);
+
+      localStorage.setItem(
+        GAME_SAVE_KEY,
+        JSON.stringify(nextGameSave)
+      );
+      setRewardMessage(
+        `${routine.title} : +${reward.xp} XP et +${reward.glory} Glory`
+      );
+    } catch {
+      setRewardMessage(
+        "La routine est validée, mais la récompense n’a pas pu être enregistrée."
+      );
+    }
+  }
+
   function completeRoutine(routineId: string) {
     const routine = routineDefinitions.find(
       (item) => item.id === routineId
@@ -109,16 +141,17 @@ export function useRoutines() {
 
     if (!routine) return;
 
-    setSave((currentSave) => {
-      const nextSave = completeRoutinePeriod(
-        currentSave,
-        routine,
-        today
-      );
+    const nextSave = completeRoutinePeriod(
+      save,
+      routine,
+      today
+    );
 
-      persistRoutineSave(nextSave);
-      return nextSave;
-    });
+    if (nextSave === save) return;
+
+    persistRoutineSave(nextSave);
+    setSave(nextSave);
+    awardRoutine(routine);
   }
 
   function addPhysicalAssessment(
@@ -130,24 +163,23 @@ export function useRoutines() {
 
     if (!routine) return;
 
-    setSave((currentSave) => {
-      const withAssessment: RoutineSaveData = {
-        ...currentSave,
-        physicalAssessments: [
-          assessment,
-          ...currentSave.physicalAssessments,
-        ],
-      };
+    const withAssessment: RoutineSaveData = {
+      ...save,
+      physicalAssessments: [
+        assessment,
+        ...save.physicalAssessments,
+      ],
+    };
 
-      const nextSave = completeRoutinePeriod(
-        withAssessment,
-        routine,
-        today
-      );
+    const nextSave = completeRoutinePeriod(
+      withAssessment,
+      routine,
+      today
+    );
 
-      persistRoutineSave(nextSave);
-      return nextSave;
-    });
+    persistRoutineSave(nextSave);
+    setSave(nextSave);
+    awardRoutine(routine);
   }
 
   function resetRoutines() {
@@ -184,6 +216,7 @@ export function useRoutines() {
     availableRoutines,
     routineStates,
     spiritualProjectUnlocked,
+    rewardMessage,
     completeRoutine,
     addPhysicalAssessment,
     resetRoutines,
