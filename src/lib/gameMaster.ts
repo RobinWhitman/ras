@@ -100,20 +100,6 @@ export function createGameMasterBriefing(
     });
   }
 
-  if (
-    currentMission &&
-    currentMission.pillar === boss.weakness &&
-    save.bossHp > 0
-  ) {
-    alerts.push({
-      id: "boss-weakness",
-      icon: "⚔️",
-      title: "Faiblesse du Boss détectée",
-      description: `La Mission recommandée développe ${boss.weakness}, la faiblesse de ${boss.name}.`,
-      priority: "haute",
-    });
-  }
-
   const weakestPillarMission =
     save.dailyMissions.find(
       (mission) =>

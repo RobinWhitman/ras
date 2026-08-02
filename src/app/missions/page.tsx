@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { FormEvent, useState } from "react";
 import { rituals } from "@/data/game";
 import MissionManager from "@/components/dashboard/MissionManager";
 import { useGame } from "@/hooks/useGame";
 
 export default function MissionsPage() {
+  const [quickMissionTitle, setQuickMissionTitle] = useState("");
   const {
     save,
     activeMissions,
@@ -34,6 +36,22 @@ export default function MissionsPage() {
     month: "long",
     year: "numeric",
   }).format(new Date(`${save.currentDate}T12:00:00`));
+  const currentWeekDay = new Date(`${save.currentDate}T12:00:00`).getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+  function addQuickMission(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const title = quickMissionTitle.trim();
+    if (!title) return;
+    addDailyMission(
+      title,
+      "Discipline",
+      "ritual-jour",
+      [currentWeekDay],
+      "project-ras-v1",
+      true
+    );
+    setQuickMissionTitle("");
+  }
 
   return (
     <main className="min-h-screen bg-black p-3 text-white sm:p-6">
@@ -60,6 +78,24 @@ export default function MissionsPage() {
             ← Retour au Dashboard
           </Link>
         </header>
+
+        <form onSubmit={addQuickMission} className="rounded-lg border border-yellow-900 bg-yellow-500/5 p-4">
+          <label htmlFor="quick-mission" className="font-bold text-yellow-300">
+            Mission libre aujourd’hui
+          </label>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              id="quick-mission"
+              value={quickMissionTitle}
+              onChange={(event) => setQuickMissionTitle(event.target.value)}
+              placeholder="Action réelle à accomplir"
+              className="min-h-11 flex-1 rounded border border-zinc-700 bg-black px-3 text-white"
+            />
+            <button type="submit" className="min-h-11 rounded bg-yellow-500 px-5 font-bold text-black">
+              Ajouter aujourd’hui
+            </button>
+          </div>
+        </form>
 
         <section className="rounded-xl border border-zinc-800 p-5">
           <div className="mb-3 flex items-center justify-between">

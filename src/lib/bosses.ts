@@ -17,10 +17,17 @@ export function getBossPhase(
   bossHp: number
 ): BossPhase {
   const hpPercent = getBossHpPercent(bossHp, boss.maxHp);
+  const phases = boss.phases ?? [];
+
+  if (phases.length === 0) {
+    return hpPercent === 0
+      ? { name: "Vaincu", minHpPercent: 0, description: "Combat terminé." }
+      : { name: "Combat en cours", minHpPercent: 1, description: "Les actions réelles font progresser ce combat." };
+  }
 
   return (
-    boss.phases.find(
+    phases.find(
       (phase) => hpPercent >= phase.minHpPercent
-    ) ?? boss.phases[boss.phases.length - 1]
+    ) ?? phases[phases.length - 1]
   );
 }

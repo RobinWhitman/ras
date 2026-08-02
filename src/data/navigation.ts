@@ -40,6 +40,11 @@ export const navigationLinks = [
     icon: "🏆",
   },
   {
+    href: "/rewards",
+    label: "Coffre",
+    icon: "🧰",
+  },
+  {
     href: "/report",
     label: "Rapport",
     icon: "📊",

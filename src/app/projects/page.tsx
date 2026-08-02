@@ -5,7 +5,7 @@ import { projectDetails } from "@/data/projects";
 import { getProjectTargetXp, useGame } from "@/hooks/useGame";
 
 export default function ProjectsPage() {
-  const { save } = useGame();
+  const { save, accomplirProjet } = useGame();
 
   const totalInvestedXp = projectDetails.reduce(
     (total, project) => total + (save.projectProgress[project.id] ?? 0),
@@ -113,6 +113,8 @@ export default function ProjectsPage() {
             const linkedMissionCount = save.dailyMissions.filter(
               (mission) => mission.projectId === project.id
             ).length;
+            const actionCompletedToday =
+              save.completedProjectActionDates[project.id] === save.currentDate;
 
             return (
               <article
@@ -221,6 +223,19 @@ export default function ProjectsPage() {
                     {project.objective}
                   </p>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => accomplirProjet(project.id)}
+                  disabled={actionCompletedToday || levelDefeated}
+                  className="mt-4 min-h-11 w-full rounded bg-yellow-500 px-4 font-bold text-black disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                >
+                  {levelDefeated
+                    ? "Niveau vaincu"
+                    : actionCompletedToday
+                      ? "Action accomplie aujourd’hui"
+                      : "Accomplir une action · +10 XP"}
+                </button>
               </article>
             );
           })}

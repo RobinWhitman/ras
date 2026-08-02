@@ -2,193 +2,77 @@
 
 import Link from "next/link";
 import { bosses } from "@/data/game";
-import {
-  getBossTargetHp,
-  useGame,
-} from "@/hooks/useGame";
-import {
-  getBossHpPercent,
-  getBossPhase,
-} from "@/lib/bosses";
+import { getBossTargetHp, useGame } from "@/hooks/useGame";
+import { getBossHpPercent } from "@/lib/bosses";
 
 export default function BossPage() {
   const { save } = useGame();
-  const baseBoss = bosses[0];
-  const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
-  const boss = {
-    ...baseBoss,
-    maxHp: getBossTargetHp(baseBoss.maxHp, bossLevel),
-  };
-
-  const hpPercent = getBossHpPercent(
-    save.bossHp,
-    boss.maxHp
-  );
-
-  const currentPhase = getBossPhase(
-    boss,
-    save.bossHp
-  );
-
-  const defeated =
-    save.defeatedBossIds.includes(baseBoss.id);
-
-  const defeatedLevels =
-    save.completedBossLevels[baseBoss.id]?.length ?? 0;
+  const boss =
+    bosses.find((item) => item.id === save.activeBossId) ?? bosses[0];
+  const level = save.bossLevels[boss.id] ?? 1;
+  const maxHp = getBossTargetHp(boss.maxHp, level);
+  const progress = getBossHpPercent(save.bossHp, maxHp);
+  const defeated = save.defeatedBossIds.includes(boss.id);
 
   return (
     <main className="min-h-screen bg-black p-3 text-white sm:p-6">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <header className="flex flex-col items-stretch gap-4 rounded-lg border border-zinc-800 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <div className="mx-auto max-w-5xl space-y-5">
+        <header className="flex flex-col gap-4 border-b border-zinc-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-widest text-red-400">
-              RAS
-            </p>
-
-            <h1 className="text-2xl font-bold sm:text-3xl">
-              👹 Boss actuel
-            </h1>
+            <p className="text-sm font-bold uppercase text-red-400">Combat réel</p>
+            <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Les 7 Boss</h1>
           </div>
-
-          <Link
-            href="/"
-            className="min-h-11 rounded-lg bg-yellow-500 px-5 py-3 text-center font-bold text-black"
-          >
-            ← Retour au Dashboard
+          <Link href="/" className="min-h-11 rounded bg-yellow-500 px-5 py-3 text-center font-bold text-black">
+            Retour au Dashboard
           </Link>
         </header>
 
-        <section className="rounded-xl border border-red-900 bg-red-950/10 p-6">
-          <div className="flex flex-col justify-between gap-5 md:flex-row">
-            <div>
-              <p className="text-sm uppercase tracking-widest text-red-400">
-                Niveau {bossLevel} · {currentPhase.name}
-              </p>
+        <section className="rounded-lg border border-red-900 bg-red-950/10 p-5 sm:p-7">
+          <p className="text-6xl">{boss.icon}</p>
+          <p className="mt-4 text-sm font-bold uppercase text-red-400">
+            Boss actuel · Niveau {level}{boss.domain ? ` · ${boss.domain}` : ""}
+          </p>
+          <h2 className="mt-2 text-3xl font-bold sm:text-4xl">{boss.name}</h2>
+          <p className="mt-3 text-zinc-400">
+            Les Missions et les actions de Projet infligent des dégâts. Une fois vaincu, le Boss suivant prend sa place le lendemain.
+          </p>
 
-              <h2 className="mt-2 text-4xl font-bold">
-                {boss.name}
-              </h2>
-
-              <p className="mt-4 max-w-2xl text-zinc-400">
-                {boss.description}
-              </p>
+          <div className="mt-7">
+            <div className="mb-2 flex justify-between font-bold">
+              <span>Points de vie</span>
+              <span>{save.bossHp}/{maxHp} PV</span>
             </div>
-
-            <div className="min-w-56 rounded-xl border border-zinc-800 p-4">
-              <p className="text-sm text-zinc-500">
-                Faiblesse
-              </p>
-
-              <p className="text-xl font-bold text-yellow-400">
-                {boss.weakness}
-              </p>
-
-              <p className="mt-4 text-sm text-zinc-500">
-                Capacité
-              </p>
-
-              <p className="text-xl font-bold">
-                {boss.ability}
-              </p>
-
-              <p className="mt-4 text-sm text-zinc-500">
-                Niveaux vaincus
-              </p>
-
-              <p className="text-xl font-bold text-yellow-400">
-                {defeatedLevels}
-              </p>
+            <div className="h-5 overflow-hidden rounded bg-zinc-800">
+              <div className="h-full bg-red-600 transition-all" style={{ width: `${progress}%` }} />
             </div>
           </div>
 
-          <div className="mt-8">
-            <div className="mb-2 flex justify-between">
-              <span className="font-bold">
-                Points de vie
-              </span>
-
-              <span>
-                {save.bossHp}/{boss.maxHp} PV
-              </span>
-            </div>
-
-            <div className="h-5 overflow-hidden rounded-full bg-zinc-800">
-              <div
-                className="h-full bg-red-600 transition-all duration-500"
-                style={{
-                  width: `${hpPercent}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-xl border border-zinc-800 p-4">
-            <p className="text-xs uppercase tracking-wider text-zinc-500">
-              Phase actuelle
-            </p>
-
-            <p className="mt-1 text-xl font-bold">
-              {currentPhase.name}
-            </p>
-
-            <p className="mt-2 text-zinc-400">
-              {currentPhase.description}
-            </p>
-          </div>
-
-          <div className="mt-6 rounded-xl border border-yellow-900 p-4">
-            <p className="text-xs uppercase tracking-wider text-zinc-500">
-              Récompense du niveau
-            </p>
-
-            <p className="mt-1 text-2xl font-bold text-yellow-400">
-              +{boss.rewardGlory} Glory
-            </p>
-
-            <p className="mt-2 text-zinc-400">
-              Cette récompense est accordée une seule fois par niveau vaincu.
-            </p>
+          <div className="mt-5 flex items-center justify-between rounded border border-yellow-900 p-4">
+            <span className="text-zinc-400">Récompense de victoire</span>
+            <strong className="text-yellow-400">+{boss.rewardGlory} Glory</strong>
           </div>
 
           {defeated && (
-            <div className="mt-6 rounded-xl border border-yellow-500 bg-yellow-500/10 p-5">
-              <p className="text-2xl font-bold text-yellow-400">
-                🏆 Niveau vaincu
-              </p>
-
-              <p className="mt-2 text-zinc-300">
-                Le Boss passera au niveau {bossLevel + 1} au prochain changement de jour.
-              </p>
-            </div>
+            <p className="mt-5 rounded border border-yellow-500 bg-yellow-500/10 p-4 font-bold text-yellow-300">
+              Boss vaincu. Le suivant apparaîtra demain.
+            </p>
           )}
         </section>
 
-        <section className="rounded-xl border border-zinc-800 p-5">
-          <h2 className="mb-4 text-2xl font-bold">
-            Phases du combat
-          </h2>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {boss.phases.map((phase) => {
-              const active =
-                phase.name === currentPhase.name;
-
+        <section>
+          <h2 className="mb-3 text-xl font-bold">Ordre des Boss</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {bosses.map((item, index) => {
+              const active = item.id === boss.id;
+              const victories = save.completedBossLevels[item.id]?.length ?? 0;
               return (
-                <article
-                  key={phase.name}
-                  className={`rounded-xl border p-4 ${
-                    active
-                      ? "border-red-500 bg-red-950/20"
-                      : "border-zinc-800"
-                  }`}
-                >
-                  <p className="font-bold">
-                    {phase.name}
-                  </p>
-
-                  <p className="mt-2 text-sm text-zinc-400">
-                    {phase.description}
-                  </p>
+                <article key={item.id} className={`flex items-center gap-4 rounded border p-4 ${active ? "border-yellow-500 bg-yellow-500/10" : "border-zinc-800"}`}>
+                  <span className="text-3xl">{item.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-zinc-500">{index + 1}/7</p>
+                    <p className="font-bold">{item.name}{item.domain ? ` · ${item.domain}` : ""}</p>
+                  </div>
+                  <span className="text-sm text-zinc-400">{victories} victoire(s)</span>
                 </article>
               );
             })}

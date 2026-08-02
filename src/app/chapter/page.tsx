@@ -17,7 +17,8 @@ export default function ChapterPage() {
   const { save } = useGame();
 
   const chapter = chapters[0];
-  const baseBoss = bosses[0];
+  const baseBoss =
+    bosses.find((boss) => boss.id === save.activeBossId) ?? bosses[0];
 
   const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
   const bossMaxHp = getBossTargetHp(baseBoss.maxHp, bossLevel);
@@ -340,11 +341,8 @@ export default function ChapterPage() {
                 </div>
               </div>
 
-              <p className="mt-4 text-sm text-zinc-400">
-                Faiblesse :{" "}
-                <span className="font-bold text-yellow-400">
-                  {boss.weakness}
-                </span>
+              <p className="mt-4 text-sm font-bold text-yellow-400">
+                {boss.icon} {boss.name}{boss.domain ? ` · ${boss.domain}` : ""}
               </p>
 
               {bossLevelDefeated && (

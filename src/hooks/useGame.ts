@@ -25,9 +25,9 @@ import type {
 } from "@/types/game";
 
 export const GAME_SAVE_KEY = "ras-save-v9";
-const SAVE_SCHEMA_VERSION = 7;
+const SAVE_SCHEMA_VERSION = 8;
 const CONFIG_VERSION = 5;
-const activeBoss = bosses[0];
+const firstBoss = bosses[0];
 
 const pillars: Pillar[] = [
   "Force",
@@ -247,7 +247,7 @@ function normalizeMission(
     bossId:
       typeof mission.bossId === "string"
         ? mission.bossId
-        : "boss-chaos",
+        : firstBoss.id,
 
     projectId:
       typeof mission.projectId === "string"
@@ -782,65 +782,32 @@ function advanceCompletedProjects(
 function advanceCompletedBosses(
   save: SaveData
 ): SaveData {
+  const currentBoss =
+    bosses.find((boss) => boss.id === save.activeBossId) ?? firstBoss;
+
+  if (!save.defeatedBossIds.includes(currentBoss.id)) return save;
+
   const nextBossLevels = {
     ...save.bossLevels,
   };
+  const currentLevel = nextBossLevels[currentBoss.id] ?? 1;
+  const rewarded =
+    save.completedBossLevels[currentBoss.id]?.includes(currentLevel) ?? false;
+  if (!rewarded) return save;
 
-  let nextBossHp = save.bossHp;
-
-  const nextDefeatedBossIds =
-    save.defeatedBossIds.filter(
-      (bossId) => {
-        const boss = bosses.find(
-          (item) =>
-            item.id === bossId
-        );
-
-        if (!boss) {
-          return false;
-        }
-
-        const currentLevel =
-          nextBossLevels[
-            bossId
-          ] ?? 1;
-
-        const levelAlreadyRewarded =
-          save.completedBossLevels[
-            bossId
-          ]?.includes(
-            currentLevel
-          ) ?? false;
-
-        if (
-          !levelAlreadyRewarded ||
-          bossId !== activeBoss.id
-        ) {
-          return true;
-        }
-
-        const nextLevel =
-          currentLevel + 1;
-
-        nextBossLevels[bossId] =
-          nextLevel;
-
-        nextBossHp =
-          getBossTargetHp(
-            boss.maxHp,
-            nextLevel
-          );
-
-        return false;
-      }
-    );
+  nextBossLevels[currentBoss.id] = currentLevel + 1;
+  const currentIndex = bosses.findIndex((boss) => boss.id === currentBoss.id);
+  const nextBoss = bosses[(currentIndex + 1) % bosses.length] ?? firstBoss;
+  const nextLevel = nextBossLevels[nextBoss.id] ?? 1;
 
   return {
     ...save,
-    bossHp: nextBossHp,
+    activeBossId: nextBoss.id,
+    bossHp: getBossTargetHp(nextBoss.maxHp, nextLevel),
     bossLevels: nextBossLevels,
-    defeatedBossIds:
-      nextDefeatedBossIds,
+    defeatedBossIds: save.defeatedBossIds.filter(
+      (bossId) => bossId !== currentBoss.id
+    ),
   };
 }
 
@@ -856,9 +823,10 @@ function createDefaultSave(): SaveData {
     glory: 0,
 
     bossHp: getBossTargetHp(
-      activeBoss.maxHp,
+      firstBoss.maxHp,
       1
     ),
+    activeBossId: firstBoss.id,
 
     dailyGlory: 0,
 
@@ -899,6 +867,8 @@ function createDefaultSave(): SaveData {
       createEmptyCompletedBossLevels(),
 
     completedProjectIds: [],
+    completedProjectActionDates: {},
+    rewardHistory: [],
   };
 }
 
@@ -990,14 +960,19 @@ export function normalizeSaveData(
       raw.completedBossLevels
     );
 
-  const activeBossLevel =
-    bossLevels[
-      activeBoss.id
-    ] ?? 1;
+  const hasValidActiveBossId = bosses.some(
+    (boss) => boss.id === raw.activeBossId
+  );
+  const activeBossId = hasValidActiveBossId
+    ? (raw.activeBossId as string)
+    : firstBoss.id;
+  const normalizedActiveBoss =
+    bosses.find((boss) => boss.id === activeBossId) ?? firstBoss;
+  const activeBossLevel = bossLevels[activeBossId] ?? 1;
 
   const activeBossMaxHp =
     getBossTargetHp(
-      activeBoss.maxHp,
+      normalizedActiveBoss.maxHp,
       activeBossLevel
     );
 
@@ -1029,11 +1004,12 @@ export function normalizeSaveData(
 
     bossHp: Math.min(
       cleanNumber(
-        raw.bossHp,
+        hasValidActiveBossId ? raw.bossHp : activeBossMaxHp,
         activeBossMaxHp
       ),
       activeBossMaxHp
     ),
+    activeBossId,
 
     dailyGlory: cleanNumber(
       raw.dailyGlory,
@@ -1091,6 +1067,28 @@ export function normalizeSaveData(
       cleanStringArray(
         raw.completedProjectIds
       ),
+
+    completedProjectActionDates:
+      raw.completedProjectActionDates &&
+      typeof raw.completedProjectActionDates === "object"
+        ? Object.fromEntries(
+            Object.entries(raw.completedProjectActionDates).filter(
+              ([, date]) => typeof date === "string"
+            )
+          )
+        : {},
+
+    rewardHistory: Array.isArray(raw.rewardHistory)
+      ? raw.rewardHistory.filter(
+          (purchase) =>
+            purchase &&
+            typeof purchase.id === "string" &&
+            typeof purchase.rewardId === "string" &&
+            typeof purchase.title === "string" &&
+            typeof purchase.cost === "number" &&
+            typeof purchase.purchasedAt === "string"
+        )
+      : [],
   };
 }
 
@@ -1205,6 +1203,9 @@ export function useGame() {
 
   const [message, setMessage] =
     useState(companion.start);
+
+  const activeBoss =
+    bosses.find((boss) => boss.id === save.activeBossId) ?? firstBoss;
 
   useEffect(() => {
     const stored =
@@ -1943,10 +1944,11 @@ export function useGame() {
     daysOfWeek: WeekDay[] =
       allWeekDays,
     projectId =
-      "project-ras-v1"
+      "project-ras-v1",
+    allowDuringDay = false
   ) {
     if (
-      ritualStarted ||
+      (!allowDuringDay && ritualStarted) ||
       !title.trim() ||
       daysOfWeek.length === 0
     ) {
@@ -1959,7 +1961,7 @@ export function useGame() {
         chapterId:
           "chapter-ras",
         bossId:
-          "boss-chaos",
+          activeBoss.id,
         projectId,
         ritualId,
         title: title.trim(),
@@ -2051,6 +2053,106 @@ export function useGame() {
     });
   }
 
+  function accomplirProjet(projectId: string) {
+    const project = projectDetails.find((item) => item.id === projectId);
+    if (!project) return;
+
+    if (save.completedProjectActionDates[projectId] === save.currentDate) {
+      setMessage("Ce Projet a déjà reçu son action quotidienne.");
+      return;
+    }
+
+    const projectLevel = save.projectLevels[projectId] ?? 1;
+    const targetXp = getProjectTargetXp(project.targetXp, projectLevel);
+    const previousXp = save.projectProgress[projectId] ?? 0;
+    const nextXp = previousXp + 10;
+    const projectDefeated =
+      previousXp < targetXp && nextXp >= targetXp;
+    const projectReward = projectDefeated ? project.rewardGlory : 0;
+
+    const bossLevel = save.bossLevels[activeBoss.id] ?? 1;
+    const nextBossHp = Math.max(save.bossHp - 5, 0);
+    const bossAlreadyRewarded =
+      save.completedBossLevels[activeBoss.id]?.includes(bossLevel) ?? false;
+    const bossDefeated =
+      save.bossHp > 0 && nextBossHp === 0 && !bossAlreadyRewarded;
+    const bossReward = bossDefeated ? activeBoss.rewardGlory : 0;
+
+    updateSave({
+      ...save,
+      xp: save.xp + 10,
+      glory: save.glory + 5 + projectReward + bossReward,
+      dailyGlory: save.dailyGlory + 5,
+      bossHp: nextBossHp,
+      projectProgress: {
+        ...save.projectProgress,
+        [projectId]: nextXp,
+      },
+      completedProjectActionDates: {
+        ...save.completedProjectActionDates,
+        [projectId]: save.currentDate,
+      },
+      completedProjectLevels: projectDefeated
+        ? {
+            ...save.completedProjectLevels,
+            [projectId]: [
+              ...(save.completedProjectLevels[projectId] ?? []),
+              projectLevel,
+            ],
+          }
+        : save.completedProjectLevels,
+      completedProjectIds: projectDefeated
+        ? Array.from(new Set([...save.completedProjectIds, projectId]))
+        : save.completedProjectIds,
+      completedBossLevels: bossDefeated
+        ? {
+            ...save.completedBossLevels,
+            [activeBoss.id]: [
+              ...(save.completedBossLevels[activeBoss.id] ?? []),
+              bossLevel,
+            ],
+          }
+        : save.completedBossLevels,
+      defeatedBossIds: bossDefeated
+        ? Array.from(new Set([...save.defeatedBossIds, activeBoss.id]))
+        : save.defeatedBossIds,
+    });
+
+    setMessage(
+      projectDefeated
+        ? `Projet vaincu : ${project.title} niveau ${projectLevel}.`
+        : `${project.title} progresse de 10 XP.`
+    );
+  }
+
+  function acheterRecompense(
+    rewardId: string,
+    title: string,
+    cost: number
+  ) {
+    if (cost <= 0 || save.glory < cost) {
+      setMessage("Glory insuffisante pour cette récompense.");
+      return false;
+    }
+
+    updateSave({
+      ...save,
+      glory: save.glory - cost,
+      rewardHistory: [
+        {
+          id: `reward-${Date.now()}`,
+          rewardId,
+          title,
+          cost,
+          purchasedAt: new Date().toISOString(),
+        },
+        ...save.rewardHistory,
+      ],
+    });
+    setMessage(`${title} débloquée pour ${cost} Glory.`);
+    return true;
+  }
+
   function resetGame() {
     const freshSave =
       createDefaultSave();
@@ -2120,6 +2222,8 @@ export function useGame() {
     updateDailyMission,
     removeDailyMission,
     restoreDefaultMissions,
+    accomplirProjet,
+    acheterRecompense,
     resetGame,
     simulateNewDay,
   };

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useGame } from "@/hooks/useGame";
+import EvolvingAvatar, { getAvatarStage } from "@/components/EvolvingAvatar";
 import {
   buildingNames,
   getBuildingProgress,
@@ -19,12 +20,7 @@ const pillarIcons: Record<Pillar, string> = {
 };
 
 function getHeroTitle(level: number) {
-  if (level >= 20) return "Souverain de sa Légende";
-  if (level >= 15) return "Champion du Royaume";
-  if (level >= 10) return "Gardien du Royaume";
-  if (level >= 5) return "Héros en Ascension";
-
-  return "Héros Éveillé";
+  return getAvatarStage(level).rank;
 }
 
 export default function HeroPage() {
@@ -86,11 +82,7 @@ export default function HeroPage() {
         <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
           <article className="overflow-hidden rounded-xl border border-yellow-900/60 bg-zinc-950">
             <div className="relative flex aspect-[3/4] items-end justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.14),transparent_62%)]">
-              <img
-                src="/assets/hero/robin-pixel.png"
-                alt="Robin, Héros de RAS"
-                className="h-full w-full object-contain object-bottom"
-              />
+              <EvolvingAvatar kind="hero" level={heroLevel} className="h-full w-full" />
 
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent p-5">
                 <h2 className="text-3xl font-bold">

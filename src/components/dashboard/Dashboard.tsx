@@ -20,6 +20,7 @@ import KingdomPanel from "./KingdomPanel";
 import PillarsPanel from "./PillarsPanel";
 import JournalPanel from "./JournalPanel";
 import VictoryToast from "./VictoryToast";
+import EvolvingAvatar from "@/components/EvolvingAvatar";
 
 export default function Dashboard() {
   const {
@@ -36,7 +37,8 @@ export default function Dashboard() {
   const [toastVisible, setToastVisible] = useState(false);
 
   const activeChapter = chapters[0];
-  const baseBoss = bosses[0];
+  const baseBoss =
+    bosses.find((boss) => boss.id === save.activeBossId) ?? bosses[0];
   const bossLevel = save.bossLevels[baseBoss.id] ?? 1;
   const heroLevel = Math.floor(save.xp / 50) + 1;
   const currentLevelXp = save.xp % 50;
@@ -288,11 +290,7 @@ export default function Dashboard() {
           <div className="order-6 min-h-[190px] lg:order-none lg:col-span-3 lg:min-h-0">
             <Card title="LOKI">
               <div className="flex h-full items-center gap-3">
-                <img
-                  src="/assets/companion/loki-pixel.png"
-                  alt="LOKI"
-                  className="h-20 w-20 shrink-0 rounded border border-green-900 object-cover"
-                />
+                <EvolvingAvatar kind="loki" level={heroLevel} className="h-20 w-20 shrink-0 rounded" />
 
                 <div className="flex min-w-0 flex-1 flex-col">
                   <p className="line-clamp-3 flex-1 text-xs text-zinc-300">

@@ -27,12 +27,22 @@ export interface Boss {
   id: string;
   chapterId: string;
   name: string;
-  description: string;
-  ability: string;
-  weakness: Pillar;
+  icon: string;
+  domain?: string;
+  description?: string;
+  ability?: string;
+  weakness?: Pillar;
   maxHp: number;
   rewardGlory: number;
-  phases: BossPhase[];
+  phases?: BossPhase[];
+}
+
+export interface RewardPurchase {
+  id: string;
+  rewardId: string;
+  title: string;
+  cost: number;
+  purchasedAt: string;
 }
 
 export interface Project {
@@ -106,6 +116,7 @@ export interface SaveData {
   xp: number;
   glory: number;
   bossHp: number;
+  activeBossId: string;
 
   dailyGlory: number;
   completedMissions: CompletedMission[];
@@ -130,4 +141,6 @@ export interface SaveData {
   completedBossLevels: CompletedBossLevels;
 
   completedProjectIds: string[];
+  completedProjectActionDates: Record<string, string>;
+  rewardHistory: RewardPurchase[];
 }

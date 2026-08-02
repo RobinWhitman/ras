@@ -22,73 +22,44 @@ export const chapters: Chapter[] = [
 ];
 
 export const bosses: Boss[] = [
-  {
-    id: "boss-chaos",
-    chapterId: "chapter-ras",
-    name: "Le Chaos Quotidien",
-    description:
-      "Une force insidieuse qui transforme les journées sans direction en désordre, dispersion et abandon.",
-    ability: "Désorganisation",
-    weakness: "Discipline",
-    maxHp: 100,
-    rewardGlory: 150,
-    phases: [
-      {
-        name: "Le Brouillard",
-        minHpPercent: 67,
-        description:
-          "Le Chaos brouille les priorités et rend chaque action plus difficile à commencer.",
-      },
-      {
-        name: "La Résistance",
-        minHpPercent: 34,
-        description:
-          "Le Chaos résiste et tente de détourner le Héros de ses engagements.",
-      },
-      {
-        name: "Le Dernier Rempart",
-        minHpPercent: 1,
-        description:
-          "Le Chaos vacille, mais rassemble ses dernières forces.",
-      },
-      {
-        name: "Vaincu",
-        minHpPercent: 0,
-        description: "Le Chaos Quotidien a été repoussé.",
-      },
-    ],
-  },
+  { id: "boss-foi", chapterId: "chapter-ras", name: "Marcher avec Dieu", icon: "✝️", maxHp: 250, rewardGlory: 150 },
+  { id: "boss-arme", chapterId: "chapter-ras", name: "Forger l’Arme", icon: "⚔️", maxHp: 300, rewardGlory: 175 },
+  { id: "boss-ras", chapterId: "chapter-ras", name: "Bâtir le Royaume", domain: "RAS", icon: "👑", maxHp: 350, rewardGlory: 200 },
+  { id: "boss-phf", chapterId: "chapter-ras", name: "Nourrir le Royaume", domain: "PHF", icon: "🍱", maxHp: 400, rewardGlory: 225 },
+  { id: "boss-citadelle", chapterId: "chapter-ras", name: "Bâtir la Citadelle", icon: "🏰", maxHp: 450, rewardGlory: 250 },
+  { id: "boss-transmettre", chapterId: "chapter-ras", name: "Transmettre", icon: "🎓", maxHp: 500, rewardGlory: 275 },
+  { id: "boss-foyer", chapterId: "chapter-ras", name: "Fonder un Foyer", icon: "❤️", maxHp: 550, rewardGlory: 300 },
 ];
 
 export const projects: Project[] = [
   {
     id: "project-ras-v1",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-ras",
     title: "Construire la V1 de RAS",
   },
   {
     id: "project-corps",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-arme",
     title: "Forger le Corps",
   },
   {
     id: "project-ordre",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-foi",
     title: "Clarifier l’Ordre Mental",
   },
   {
     id: "project-phf",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-phf",
     title: "Développer PHF",
   },
   {
     id: "project-transmission",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-transmettre",
     title: "Transmettre et accompagner",
   },
 ];
@@ -115,7 +86,7 @@ export const missions: Mission[] = [
   {
     id: "mission-livraisons-clients",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-phf",
     projectId: "project-phf",
     ritualId: "ritual-jour",
     title: "Livraisons clients",
@@ -128,7 +99,7 @@ export const missions: Mission[] = [
   {
     id: "mission-coaching-halterophilie",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-transmettre",
     projectId: "project-transmission",
     ritualId: "ritual-crepuscule",
     title: "Coaching haltérophilie",
@@ -141,7 +112,7 @@ export const missions: Mission[] = [
   {
     id: "mission-ventes-phf",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-phf",
     projectId: "project-phf",
     ritualId: "ritual-jour",
     title: "Ventes PHF · 11 h à 14 h",
@@ -154,7 +125,7 @@ export const missions: Mission[] = [
   {
     id: "mission-production-phf",
     chapterId: "chapter-ras",
-    bossId: "boss-chaos",
+    bossId: "boss-phf",
     projectId: "project-phf",
     ritualId: "ritual-jour",
     title: "Production PHF",

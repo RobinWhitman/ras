@@ -5,6 +5,7 @@ import { bosses } from "@/data/game";
 import { companionProfile } from "@/data/companionProfile";
 import { useGame } from "@/hooks/useGame";
 import { createGameMasterBriefing } from "@/lib/gameMaster";
+import EvolvingAvatar, { getAvatarStage } from "@/components/EvolvingAvatar";
 
 const priorityClasses = {
   haute: "border-red-900 bg-red-950/20",
@@ -21,7 +22,10 @@ export default function CompanionPage() {
     accomplirMission,
   } = useGame();
 
-  const activeBoss = bosses[0];
+  const activeBoss =
+    bosses.find((boss) => boss.id === save.activeBossId) ?? bosses[0];
+  const heroLevel = Math.floor(save.xp / 50) + 1;
+  const avatarStage = getAvatarStage(heroLevel);
 
   const briefing = createGameMasterBriefing(
     save,
@@ -55,11 +59,7 @@ export default function CompanionPage() {
         <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
           <article className="rounded-xl border border-zinc-800 p-5">
             <div className="aspect-square overflow-hidden rounded-xl border border-green-900 bg-zinc-950">
-              <img
-                src="/assets/companion/loki-pixel.png"
-                alt="LOKI"
-                className="h-full w-full object-cover"
-              />
+              <EvolvingAvatar kind="loki" level={heroLevel} className="h-full w-full" />
             </div>
 
             <div className="mt-5 text-center">
@@ -72,7 +72,7 @@ export default function CompanionPage() {
               </p>
 
               <p className="mt-1 text-sm text-zinc-400">
-                {companionProfile.role}
+                {companionProfile.role} · {avatarStage.rank}
               </p>
             </div>
 
@@ -198,12 +198,9 @@ export default function CompanionPage() {
           </article>
 
           <article className="rounded-xl border border-zinc-800 p-5">
-            <p className="text-sm text-zinc-500">
-              Faiblesse du Boss
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-red-400">
-              {activeBoss.weakness}
+            <p className="text-sm text-zinc-500">Boss actuel</p>
+            <p className="mt-2 text-xl font-bold text-red-400">
+              {activeBoss.icon} {activeBoss.name}
             </p>
           </article>
 

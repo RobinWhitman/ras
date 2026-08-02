@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Card from "@/components/Card";
 import ProgressBar from "@/components/ProgressBar";
-import { getBossPhase } from "@/lib/bosses";
 import type { Boss } from "@/types/game";
 
 type BossPanelProps = {
@@ -17,24 +16,18 @@ export default function BossPanel({
   bossLevel,
   bossDefeated,
 }: BossPanelProps) {
-  const phase = getBossPhase(boss, bossHp);
-
   return (
     <Card title="👹 Boss">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-bold">
-            {boss.name}
+            {boss.icon} {boss.name}
           </p>
 
           <p className="text-xs text-yellow-400">
-            Niveau {bossLevel} · {phase.name}
+            Niveau {bossLevel}{boss.domain ? ` · ${boss.domain}` : ""}
           </p>
         </div>
-
-        <p className="text-xs text-zinc-400">
-          Faiblesse : {boss.weakness}
-        </p>
       </div>
 
       <ProgressBar
